@@ -14,6 +14,7 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter")
     implementation("net.minestom:minestom:2025.10.05-1.21.8")
     implementation(project(":server-bootstrap"))
+    implementation(project(":world-management"))
 }
 
 tasks.test {

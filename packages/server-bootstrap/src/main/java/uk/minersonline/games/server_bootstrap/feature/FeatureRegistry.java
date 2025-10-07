@@ -11,8 +11,15 @@ import java.util.Map;
 
 public class FeatureRegistry {
     private static final Logger logger = LoggerFactory.getLogger(FeatureRegistry.class);
+
+    public static final FeatureRegistry INSTANCE = new FeatureRegistry();
+
     /** Stores all discovered dependencies by ID */
     private final Map<Key, FeatureInfo> features = new HashMap<>();
+
+    private FeatureRegistry() {
+
+    }
 
     public void scanAndRegister() {
         try (ScanResult scanResult = new ClassGraph()
@@ -51,6 +58,10 @@ public class FeatureRegistry {
     /** Retrieve all registered dependencies */
     public Map<Key, FeatureInfo> getAllFeatures() {
         return features;
+    }
+
+    public static boolean isFeatureLoaded(Key id) {
+        return INSTANCE.getFeature(id) != null;
     }
 
     /**

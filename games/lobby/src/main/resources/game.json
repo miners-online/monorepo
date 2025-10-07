@@ -3,6 +3,6 @@
   "name": "Lobby",
   "version": "0.0.1",
   "dependencies": [
-    "miners_online:test"
+    "miners_online:world_management"
   ]
 }

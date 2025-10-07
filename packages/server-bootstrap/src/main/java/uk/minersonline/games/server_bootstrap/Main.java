@@ -17,11 +17,9 @@ import java.util.List;
 public class Main {
     private static final Logger logger = LoggerFactory.getLogger(Main.class);
     private final GameLocator locator;
-    private final FeatureRegistry registry;
 
     public Main() {
         this.locator = new GameLocator();
-        this.registry = new FeatureRegistry();
     }
 
     public void run() throws Exception {
@@ -30,7 +28,7 @@ public class Main {
         MinecraftServer.getExceptionManager().setExceptionHandler((throwable) -> logger.error("Uncaught exception ", throwable));
         Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> logger.error("Uncaught exception in thread {}", thread.getName(), throwable));
 
-        registry.scanAndRegister();
+        FeatureRegistry.INSTANCE.scanAndRegister();
 
         locator.locateGame();
         Game game = locator.getGame();
@@ -51,7 +49,7 @@ public class Main {
                 continue;
             }
 
-            FeatureRegistry.FeatureInfo info = registry.getFeature(key);
+            FeatureRegistry.FeatureInfo info = FeatureRegistry.INSTANCE.getFeature(key);
             if (info == null) {
                 logger.warn("No feature registered with ID '{}'. Skipping.", id);
                 failedFeatures.add(id);
