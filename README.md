@@ -10,7 +10,7 @@ found here.
   - [Mind Bending](./games/mind-bending/)
 - Packages:
   - [Game Management](./packages/game-management/)
-  - [Server Common](./packages/server-common/)
+  - [Server Bootstrap](./packages/server-bootstrap/)
   - [World Management](./packages/world-management/)
 - Services:
   - [Permissions Manager](./services/permissions-manager/)
