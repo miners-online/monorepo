@@ -15,3 +15,9 @@ This is our monorepo, it replaces the indepedant repos we used to have. All our 
   - [Permissions Manager](./services/permissions-manager/)
   - [Player Profiles](./services/player-profiles/)
   - [Statistics](./services/statistics/)
+
+## Why a monorepo?
+
+We have lots of services that need to interact with eachother, when we used seperate repoistories we needed on-prem CI/CD server and a Maven repoistory to allow these services to share packages.
+
+With a monorepo we can drop that on-prem infrastructure completely, as packages can be shared directly.
