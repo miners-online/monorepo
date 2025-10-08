@@ -23,19 +23,19 @@ public class LobbyGame extends Game {
     public void onInit() {
         geh = MinecraftServer.getGlobalEventHandler();
 
-        InstanceContainer voidInstance;
-        try {
-            InputStream is = this.getClass().getClassLoader().getResourceAsStream("void_platform.schem");
-            Schematic schematic = WorldManagement.loadCompressedFromInputStream(is);
-            DimensionType fullbright = DimensionType.builder().ambientLight(1.0f).build();
-            voidInstance = WorldManagement.instanceFromSchematic(schematic, fullbright);
-            voidInstance.setTimeRate(0);
-            voidInstance.setTime(12000);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-
         if (FeatureRegistry.isFeatureLoaded(Key.key("miners_online:world_management"))) {
+            InstanceContainer voidInstance;
+            try {
+                InputStream is = this.getClass().getClassLoader().getResourceAsStream("void_platform.schem");
+                Schematic schematic = WorldManagement.loadCompressedFromInputStream(is);
+                DimensionType fullbright = DimensionType.builder().ambientLight(1.0f).build();
+                voidInstance = WorldManagement.instanceFromSchematic(schematic, fullbright);
+                voidInstance.setTimeRate(0);
+                voidInstance.setTime(12000);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+
             WorldManagement.setDefaultInstance(voidInstance);
         }
     }
