@@ -4,18 +4,18 @@ This is our monorepo, it replaces the independent repos we used to have. All our
 found here.
 
 - Games:
-  - [Cave Run](./games/cave-run/)
-  - [Golf](./games/golf/)
-  - [Lobby](./games/lobby/)
-  - [Mind Bending](./games/mind-bending/)
+  - [Cave Run](./games/cave-run/) (placeholder)
+  - [Golf](./games/golf/) (placeholder)
+  - [Lobby](./games/lobby/) - The lobby server, where players first join
+  - [Mind Bending](./games/mind-bending/) (placeholder)
 - Packages:
-  - [Game Management](./packages/game-management/)
-  - [Server Bootstrap](./packages/server-bootstrap/)
-  - [World Management](./packages/world-management/)
+  - [Game Management](./packages/game-management/) (placeholder)
+  - [Server Bootstrap](./packages/server-bootstrap/) - The server bootstrapper, used to start all our games
+  - [World Management](./packages/world-management/) - Tools for managing worlds and schematics
 - Services:
-  - [Permissions Manager](./services/permissions-manager/)
-  - [Player Profiles](./services/player-profiles/)
-  - [Statistics](./services/statistics/)
+  - [Permissions Manager](./services/permissions-manager/) (placeholder)
+  - [Player Profiles](./services/player-profiles/) (placeholder)
+  - [Statistics](./services/statistics/) (placeholder)
 
 ## Why a monorepo?
 
