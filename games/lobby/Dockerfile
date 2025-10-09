@@ -1,37 +1,31 @@
 # -----------------------------
 # Stage 1: Build the Shadow Jar
 # -----------------------------
-FROM eclipse-temurin:21-jdk-focal AS builder
+FROM eclipse-temurin:21-jdk-alpine AS builder
 
 # Set working directory
 WORKDIR /app
 
-# Copy Gradle wrapper and configuration for caching
-COPY gradlew .
-COPY gradle ./gradle
-COPY build.gradle settings.gradle ./
-
-# Make Gradle wrapper executable
-RUN chmod +x ./gradlew
-
-# Download dependencies (cached)
-RUN ./gradlew --no-daemon dependencies || true
-
-# Copy the rest of the project
+# Copy the entire project
 COPY . .
 
+RUN ls -la /app/
+
+# Make Gradle wrapper executable
+RUN cd /app/games/lobby && chmod +x ./gradlew
+
 # Build the shadow jar
-RUN ./gradlew --no-daemon shadowJar
+RUN cd /app/games/lobby && ./gradlew --no-daemon shadowJar
 
 # -----------------------------
 # Stage 2: Runtime image
 # -----------------------------
-FROM eclipse-temurin:21-jre-focal
+FROM eclipse-temurin:21-jre-alpine
 
 WORKDIR /app
 
 # Copy the shadow jar from the builder stage
-COPY --from=builder /app/build/libs/*-all.jar app.jar
+COPY --from=builder /app/games/lobby/build/libs/*-all.jar app.jar
 
 # Expose port
 EXPOSE 25565
