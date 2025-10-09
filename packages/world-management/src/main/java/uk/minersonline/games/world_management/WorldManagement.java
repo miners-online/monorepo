@@ -68,70 +68,35 @@ public class WorldManagement implements Feature {
     }
 
     /**
-     * <p>Create an InstanceContainer from a Schematic.</p>
+     * <p>Create an InstanceContainer from a MinestomSchematic.</p>
      *
-     * <p>The Schematic will be placed with its offset centered on (0, 0) in the world with the Schematic's bottom
-     * being aligned at y=0.</p>
-     * @param schematic Schematic to create the instance from
+     * <p>The MinestomSchematic will be placed with its offset centered on (0, 0) in the world with the
+     * bottom being aligned at y=0.</p>
+     * @param schematic MinestomSchematic to create the instance from
      * @param type DimensionType of the instance
      * @return InstanceContainer created from the schematic
      */
-    public static InstanceContainer instanceFromSchematic(Schematic schematic, DimensionType type) {
+    public static InstanceContainer instanceFromSchematic(MinestomSchematic schematic, DimensionType type) {
         @Subst("100") long timel = System.currentTimeMillis();
         String newId = "world_" + timel;
         RegistryKey<DimensionType> dimKey =
                 MinecraftServer.getDimensionTypeRegistry().register(Key.key("miners_online:"+newId), type);
         InstanceContainer instance = MinecraftServer.getInstanceManager().createInstanceContainer(dimKey);
 
-        final SchematicBlockPos offset = schematic.offset(); // reference point in schematic
-        schematic.blocks().forEach((pair -> {
-            SchematicBlockPos relative = pair.left;
-            @Subst("") SchematicBlock block = pair.right;
+        final BlockVec offset = schematic.offset(); // reference point in schematic
+        schematic.apply((pair -> {
+            BlockVec relative = pair.left;
+            Block block = pair.right;
 
-            int absX = (relative.x() + offset.x());
-            int absY = relative.y(); // bottom-aligned
-            int absZ = (relative.z() + offset.z());
+            int absX = (int) (relative.x() + offset.x());
+            int absY = (int) relative.y(); // bottom-aligned
+            int absZ = (int) (relative.z() + offset.z());
 
             BlockVec pos = new BlockVec(absX, absY, absZ);
-            @Subst("minecraft:air") String name = block.name();
-            Block b = Block.fromKey(Key.key(name));
-
-            if (b == null) {
-                b = Block.AIR;
-            }
-            instance.setBlock(pos, b);
+            instance.setBlock(pos, block);
         }));
 
         return instance;
     }
 
-    /**
-     * <p>Load a schematic from an InputStream. The stream is not closed by this method.</p>
-     *
-     * <p>Furthermore, this fixes a bug in schematic4J where it doesn't find the root tag correctly.</p>
-     * @param is InputStream to read the schematic from
-     * @return Schematic object
-     * @throws Exception if an error occurs while reading the schematic
-     */
-    public static Schematic loadFromInputStream(InputStream is) throws Exception {
-        final NamedTag rootTag = NBTUtil.Reader.read().from(is);
-        final CompoundTag nbt = rootTag!=null&& rootTag.getTag() instanceof CompoundTag? (CompoundTag) rootTag.getTag() :null;
-        final CompoundTag schematicRoot = nbt.getCompoundTag("Schematic");
-        Schematic schematic = SchematicLoader.parse(schematicRoot);
-        return schematic;
-    }
-
-    /**
-     * <p>Load a compressed schematic from an InputStream. The stream is not closed by this method.</p>
-     *
-     * <p>This is a convenience method that wraps the InputStream in a GZIPInputStream and calls {@link #loadFromInputStream(InputStream)}.</p>
-     *
-     * @param is InputStream to read the compressed schematic from
-     * @return Schematic object
-     * @throws Exception if an error occurs while reading the schematic
-     */
-    public static Schematic loadCompressedFromInputStream(InputStream is) throws Exception {
-        GZIPInputStream gis = new GZIPInputStream(is);
-        return loadFromInputStream(gis);
-    }
 }
