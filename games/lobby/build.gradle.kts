@@ -1,5 +1,6 @@
 plugins {
     id("java")
+    id("com.gradleup.shadow") version "8.3.0"
 }
 
 group = "uk.minersonline.games"
@@ -27,4 +28,19 @@ tasks.register<JavaExec>("run") {
     description = "Run the Lobby server"
     classpath = sourceSets["main"].runtimeClasspath
     mainClass.set("uk.minersonline.games.server_bootstrap.Main")
+}
+
+tasks {
+    jar {
+        manifest {
+            attributes["Main-Class"] = "uk.minersonline.games.server_bootstrap.Main" // Change this to your main class
+        }
+    }
+
+    build {
+        dependsOn(shadowJar)
+    }
+    shadowJar {
+        mergeServiceFiles()
+    }
 }
