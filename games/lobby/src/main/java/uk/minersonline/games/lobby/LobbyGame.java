@@ -15,6 +15,7 @@ import uk.minersonline.games.server_bootstrap.game.Game;
 import uk.minersonline.games.world_management.MinestomSchematic;
 import uk.minersonline.games.world_management.WorldManagement;
 
+import java.io.FileInputStream;
 import java.io.InputStream;
 
 public class LobbyGame extends Game {
@@ -28,7 +29,13 @@ public class LobbyGame extends Game {
         if (FeatureRegistry.isFeatureLoaded(Key.key("miners_online:world_management"))) {
             InstanceContainer voidInstance;
             try {
-                InputStream is = this.getClass().getClassLoader().getResourceAsStream("void_platform.schem");
+                String path = System.getenv("SCHEMATIC_PATH");
+                InputStream is;
+                if (path == null) {
+                    is = this.getClass().getClassLoader().getResourceAsStream("void_platform.schem");
+                } else {
+                    is = new FileInputStream(path);
+                }
                 lobby = MinestomSchematic.loadGzip(is);
                 DimensionType fullbright = DimensionType.builder().ambientLight(1.0f).build();
                 voidInstance = WorldManagement.instanceFromSchematic(lobby, fullbright);

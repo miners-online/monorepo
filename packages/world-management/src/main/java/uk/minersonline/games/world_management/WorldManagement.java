@@ -12,20 +12,11 @@ import net.minestom.server.instance.InstanceContainer;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.registry.RegistryKey;
 import net.minestom.server.world.DimensionType;
-import net.sandrohc.schematic4j.SchematicLoader;
-import net.sandrohc.schematic4j.nbt.io.NBTUtil;
-import net.sandrohc.schematic4j.nbt.io.NamedTag;
-import net.sandrohc.schematic4j.nbt.tag.CompoundTag;
-import net.sandrohc.schematic4j.schematic.Schematic;
-import net.sandrohc.schematic4j.schematic.types.SchematicBlock;
-import net.sandrohc.schematic4j.schematic.types.SchematicBlockPos;
 import org.intellij.lang.annotations.Subst;
 import uk.minersonline.games.server_bootstrap.feature.Feature;
 import uk.minersonline.games.server_bootstrap.feature.FeatureImplementation;
 import uk.minersonline.games.server_bootstrap.game.Game;
 
-import java.io.InputStream;
-import java.util.zip.GZIPInputStream;
 
 @FeatureImplementation(
     id = "miners_online:world_management",
