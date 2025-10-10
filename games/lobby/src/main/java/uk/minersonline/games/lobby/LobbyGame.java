@@ -20,14 +20,14 @@ import java.io.InputStream;
 
 public class LobbyGame extends Game {
     private GlobalEventHandler geh;
-    private MinestomSchematic lobby;
+    private Pos spawnPoint;
 
     @Override
     public void onInit() {
         geh = MinecraftServer.getGlobalEventHandler();
 
         if (FeatureRegistry.isFeatureLoaded(Key.key("miners_online:world_management"))) {
-            InstanceContainer voidInstance;
+            InstanceContainer instance;
             try {
                 String path = System.getenv("SCHEMATIC_PATH");
                 InputStream is;
@@ -36,27 +36,31 @@ public class LobbyGame extends Game {
                 } else {
                     is = new FileInputStream(path);
                 }
-                lobby = MinestomSchematic.loadGzip(is);
+                MinestomSchematic lobby = MinestomSchematic.loadGzip(is);
                 DimensionType fullbright = DimensionType.builder().ambientLight(1.0f).build();
-                voidInstance = WorldManagement.instanceFromSchematic(lobby, fullbright);
-                voidInstance.setTimeRate(0);
-                voidInstance.setTime(12000);
+                instance = WorldManagement.instanceFromSchematic(lobby, fullbright);
+                instance.setTimeRate(0);
+                instance.setTime(12000);
+                spawnPoint = new Pos(0.5, lobby.offset().y() + 2, 0.5);
+                WorldManagement.findHighestBlock(instance, spawnPoint.blockX(), spawnPoint.blockZ(), (y, block) -> {
+                    if (block != null && !block.isAir()) {
+                        spawnPoint = new Pos(spawnPoint.x(), y + 1, spawnPoint.z());
+                    }
+                });
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
 
-            WorldManagement.setDefaultInstance(voidInstance);
+            WorldManagement.setDefaultInstance(instance);
         }
     }
 
     @Override
     public void onStart() {
         geh.addListener(AsyncPlayerConfigurationEvent.class, event -> {
-            BlockVec offset = lobby.offset();
-            Pos spawn = new Pos(0.5, offset.y() + 2, 0.5);
             final Player player = event.getPlayer();
             player.setGameMode(GameMode.CREATIVE);
-            player.setRespawnPoint(spawn);
+            player.setRespawnPoint(spawnPoint);
         });
     }
 

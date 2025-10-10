@@ -13,6 +13,7 @@ import net.minestom.server.instance.block.Block;
 import net.minestom.server.registry.RegistryKey;
 import net.minestom.server.world.DimensionType;
 import org.intellij.lang.annotations.Subst;
+import org.jetbrains.annotations.Nullable;
 import uk.minersonline.games.server_bootstrap.feature.Feature;
 import uk.minersonline.games.server_bootstrap.feature.FeatureImplementation;
 import uk.minersonline.games.server_bootstrap.game.Game;
@@ -90,4 +91,31 @@ public class WorldManagement implements Feature {
         return instance;
     }
 
+    /**
+     * <p>Find the highest non-air block at the given x and z coordinates in the instance.</p>
+     * @param instance Instance to search in
+     * @param x X coordinate
+     * @param z Z coordinate
+     * @param result BlockResult callback to receive the result
+     */
+    public static void findHighestBlock(Instance instance, int x, int z, BlockResult result) {
+        DimensionType dimensionType = instance.getCachedDimensionType();
+        int highestY = dimensionType.maxY() - 1;
+        for (int y = highestY; y >= dimensionType.minY(); y--) {
+            Block block = instance.getBlock(x, y, z);
+            if (!block.isAir()) {
+                result.accept(y, block);
+                return;
+            }
+        }
+        result.accept(dimensionType.minY(), null);
+    }
+
+    /**
+     * <p>Callback interface for receiving the result of the highest block search.</p>
+     */
+    @FunctionalInterface
+    public interface BlockResult {
+        void accept(int y, @Nullable Block block);
+    }
 }
