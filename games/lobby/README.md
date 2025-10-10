@@ -7,9 +7,11 @@ from here they can select which game to play.
 
 The lobby server can be configured through the following environment variables:
 
-| Variable               | Description                                      | Default |
-|------------------------|--------------------------------------------------|---------|
-| `SCHEMATIC_PATH`       | Path to the schematic file to load               | None    |
+1. `SCHEMATIC_PATH`: The path to the schematic file to use for the lobby world. If not set, the default schematic will be used.
+2. `USE_MOJANG_AUTH`: If set to a none-empty value, the server will use Mojang authentication. Default is empty.
+3. `PROXY_AUTH_TYPE`: The type of proxy authentication to use. Can be `BUNGEE_GUARD`, `VELOCITY` or `NONE`. Default is `NONE`.
+4. `VELOCITY_AUTH_SECRET`: The secret key to use for Velocity proxy authentication. Required if `PROXY_AUTH_TYPE` is set to `VELOCITY`.
+5. `BUNGEE_GUARD_AUTH_TOKENS`: A comma-separated list of valid tokens for BungeeGuard proxy authentication. Required if `PROXY_AUTH_TYPE` is set to `BUNGEE_GUARD`.
 
 ## Running
 
