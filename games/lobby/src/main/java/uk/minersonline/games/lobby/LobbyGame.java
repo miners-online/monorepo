@@ -2,7 +2,6 @@ package uk.minersonline.games.lobby;
 
 import net.kyori.adventure.key.Key;
 import net.minestom.server.MinecraftServer;
-import net.minestom.server.coordinate.BlockVec;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.GameMode;
 import net.minestom.server.entity.Player;
