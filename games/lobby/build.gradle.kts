@@ -14,6 +14,7 @@ dependencies {
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     implementation("net.minestom:minestom:2025.10.05-1.21.8")
+    implementation(project(":default-block-handlers"))
     implementation(project(":server-bootstrap"))
     implementation(project(":world-management"))
 }

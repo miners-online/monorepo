@@ -9,6 +9,7 @@ found here.
   - [Lobby](./games/lobby/) - The lobby server, where players first join
   - [Mind Bending](./games/mind-bending/) (placeholder)
 - Packages:
+  - [Default Block Handlers](./packages/default-block-handlers/) - Default block handlers for Minestom
   - [Game Management](./packages/game-management/) (placeholder)
   - [Server Bootstrap](./packages/server-bootstrap/) - The server bootstrapper, used to start all our games
   - [World Management](./packages/world-management/) - Tools for managing worlds and schematics
