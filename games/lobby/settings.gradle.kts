@@ -1,7 +1,7 @@
 rootProject.name = "lobby"
 
-include(":default-block-handlers")
-project(":default-block-handlers").projectDir = file("../../packages/default-block-handlers")
+include(":game-materials")
+project(":game-materials").projectDir = file("../../packages/game-materials")
 include(":server-bootstrap")
 project(":server-bootstrap").projectDir = file("../../packages/server-bootstrap")
 include(":world-management")

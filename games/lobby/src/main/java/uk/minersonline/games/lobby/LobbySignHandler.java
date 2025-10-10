@@ -14,7 +14,7 @@ import net.minestom.server.registry.RegistryTag;
 import net.minestom.server.registry.TagKey;
 import net.minestom.server.utils.Direction;
 import org.jetbrains.annotations.NotNull;
-import uk.minersonline.games.default_block_handlers.SignBlockHandler;
+import uk.minersonline.games.game_materials.SignBlockHandler;
 
 import java.util.Objects;
 

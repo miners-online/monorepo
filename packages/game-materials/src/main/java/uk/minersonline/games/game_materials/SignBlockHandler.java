@@ -1,4 +1,4 @@
-package uk.minersonline.games.default_block_handlers;
+package uk.minersonline.games.game_materials;
 
 import net.kyori.adventure.key.Key;
 import net.minestom.server.MinecraftServer;
