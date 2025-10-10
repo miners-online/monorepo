@@ -15,6 +15,7 @@ import org.intellij.lang.annotations.Subst;
 
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -30,7 +31,7 @@ import java.util.zip.GZIPInputStream;
  */
 public class MinestomSchematic {
     private final Schematic schematic;
-    private final List<Pair<BlockVec, Block>> blocks;
+    private final List<Pair<BlockVec, ParsedBlock>> blocks;
 
     private MinestomSchematic(Schematic schematic) {
         this.schematic = schematic;
@@ -41,15 +42,9 @@ public class MinestomSchematic {
             SchematicBlock block = pair.right;
 
             BlockVec pos = new BlockVec(relative.x(), relative.y(), relative.z());
-            @Subst("minecraft:air") String name = block.name();
-            Block b = Block.fromKey(Key.key(name));
+            String name = block.name();
+            ParsedBlock b = parseBlockState(name, block.states());
 
-            if (b == null) {
-                b = Block.AIR;
-            }
-            for (Map.Entry<String, String> entry : block.states.entrySet()) {
-                b = b.withProperty(entry.getKey(), entry.getValue());
-            }
             this.blocks.add(new Pair<>(pos, b));
         }));
     }
@@ -70,11 +65,11 @@ public class MinestomSchematic {
         return schematic.length();
     }
 
-    public List<Pair<BlockVec, Block>> blocks() {
+    public List<Pair<BlockVec, ParsedBlock>> blocks() {
         return blocks;
     }
 
-    public void apply(Consumer<Pair<BlockVec, Block>> consumer) {
+    public void apply(Consumer<Pair<BlockVec, ParsedBlock>> consumer) {
         blocks.forEach(consumer);
     }
 
@@ -115,5 +110,49 @@ public class MinestomSchematic {
     public static MinestomSchematic loadGzip(InputStream is) throws Exception {
         GZIPInputStream gis = new GZIPInputStream(is);
         return load(gis);
+    }
+
+    public record ParsedBlock(@Subst("minecraft:air") String id, Map<String, String> properties) {
+        public ParsedBlock(String id, Map<String, String> properties) {
+            this.id = id;
+            this.properties = properties;
+        }
+
+        public Block toBlock() {
+            Block b = Block.fromKey(Key.key(id));
+            if (b == null) {
+                b = Block.AIR;
+            }
+            for (Map.Entry<String, String> entry : properties.entrySet()) {
+                b = b.withProperty(entry.getKey(), entry.getValue());
+            }
+            return b;
+        }
+    }
+
+    private static ParsedBlock parseBlockState(String input, Map<String, String> additionalProperties) {
+        String id;
+        Map<String, String> properties = new LinkedHashMap<>(); // preserves order
+
+        int bracketIndex = input.indexOf('[');
+        if (bracketIndex == -1) {
+            // no properties
+            id = input;
+        } else {
+            id = input.substring(0, bracketIndex);
+            String propsPart = input.substring(bracketIndex + 1, input.length() - 1); // remove [ and ]
+            String[] entries = propsPart.split(",");
+            for (String entry : entries) {
+                String[] kv = entry.split("=", 2);
+                if (kv.length == 2) {
+                    properties.put(kv[0], kv[1]);
+                }
+            }
+        }
+        if (additionalProperties != null) {
+            properties.putAll(additionalProperties);
+        }
+
+        return new ParsedBlock(id, properties);
     }
 }

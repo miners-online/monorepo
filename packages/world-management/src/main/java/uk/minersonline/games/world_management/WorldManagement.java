@@ -77,7 +77,7 @@ public class WorldManagement implements Feature {
         final BlockVec offset = schematic.offset(); // reference point in schematic
         schematic.apply((pair -> {
             BlockVec relative = pair.left;
-            Block block = pair.right;
+            Block block = pair.right.toBlock();
 
             int absX = (int) (relative.x() + offset.x());
             int absY = (int) relative.y(); // bottom-aligned
