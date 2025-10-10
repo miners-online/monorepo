@@ -2,8 +2,11 @@ package uk.minersonline.games.world_management;
 
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.nbt.*;
+import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.BlockVec;
 import net.minestom.server.instance.block.Block;
+import net.minestom.server.instance.block.BlockHandler;
+import net.minestom.server.instance.block.BlockManager;
 import net.sandrohc.schematic4j.SchematicLoader;
 import net.sandrohc.schematic4j.nbt.io.NBTUtil;
 import net.sandrohc.schematic4j.nbt.io.NamedTag;
@@ -151,6 +154,11 @@ public class MinestomSchematic {
             }
             if (nbt != null) {
                 b = b.withNbt(nbt);
+            }
+            BlockManager manager = MinecraftServer.getBlockManager();
+            BlockHandler handler = manager.getHandler(id);
+            if (handler != null) {
+                b = b.withHandler(handler);
             }
             return b;
         }
