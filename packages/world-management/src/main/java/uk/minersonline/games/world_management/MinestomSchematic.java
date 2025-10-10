@@ -1,7 +1,7 @@
 package uk.minersonline.games.world_management;
 
 import net.kyori.adventure.key.Key;
-import net.kyori.adventure.nbt.CompoundBinaryTag;
+import net.kyori.adventure.nbt.*;
 import net.minestom.server.coordinate.BlockVec;
 import net.minestom.server.instance.block.Block;
 import net.sandrohc.schematic4j.SchematicLoader;
@@ -32,8 +32,8 @@ import java.util.zip.GZIPInputStream;
  *     <li>Properly removing block states from the block name -
  *     <i>even though schematic4J has a separate states getter it still appends the states to the block name</i></li>
  *     <li>Use the correct "Data" sub tag for block NBT data</li>
- *  </ul>
- *  </p>
+ * </ul>
+ * </p>
  *
  * @since 0.0.1
  */
@@ -193,28 +193,68 @@ public class MinestomSchematic {
             Object value = entry.getValue();
             if (value instanceof TreeMap) {
                 builder.put(key, fromTreeMap((TreeMap<String, Object>) value));
-            } else if (value instanceof String) {
-                builder.putString(key, (String) value);
-            } else if (value instanceof Integer) {
-                builder.putInt(key, (Integer) value);
-            } else if (value instanceof Byte) {
-                builder.putByte(key, (Byte) value);
-            } else if (value instanceof Long) {
-                builder.putLong(key, (Long) value);
-            } else if (value instanceof Short) {
-                builder.putShort(key, (Short) value);
-            } else if (value instanceof Float) {
-                builder.putFloat(key, (Float) value);
-            } else if (value instanceof Double) {
-                builder.putDouble(key, (Double) value);
-            } else if (value instanceof byte[]) {
-                builder.putByteArray(key, (byte[]) value);
-            } else if (value instanceof int[]) {
-                builder.putIntArray(key, (int[]) value);
-            } else if (value instanceof long[]) {
-                builder.putLongArray(key, (long[]) value);
+            } else if (value instanceof List) {
+                parseList(value, builder, key);
+            } else {
+                parsePrimitive(value, builder, key);
             }
         }
         return builder.build();
+    }
+
+    private static void parsePrimitive(Object o, CompoundBinaryTag.Builder output, String key) {
+        if (o instanceof String) {
+            output.putString(key, (String) o);
+        } else if (o instanceof Integer) {
+            output.putInt(key, (Integer) o);
+        } else if (o instanceof Byte) {
+            output.putByte(key, (Byte) o);
+        } else if (o instanceof Long) {
+            output.putLong(key, (Long) o);
+        } else if (o instanceof Short) {
+            output.putShort(key, (Short) o);
+        } else if (o instanceof Float) {
+            output.putFloat(key, (Float) o);
+        } else if (o instanceof Double) {
+            output.putDouble(key, (Double) o);
+        } else if (o instanceof byte[]) {
+            output.putByteArray(key, (byte[]) o);
+        } else if (o instanceof int[]) {
+            output.putIntArray(key, (int[]) o);
+        } else if (o instanceof long[]) {
+            output.putLongArray(key, (long[]) o);
+        }
+    }
+
+    private static void parseList(Object o, CompoundBinaryTag.Builder output, String key) {
+        if (o instanceof List<?> list) {
+            ListBinaryTag.Builder<BinaryTag> listBuilder = ListBinaryTag.builder();
+            for (Object item : list) {
+                if (item instanceof TreeMap) {
+                    listBuilder.add(fromTreeMap((TreeMap<String, Object>) item).asBinaryTag());
+                } else if (item instanceof String) {
+                    listBuilder.add(StringBinaryTag.stringBinaryTag((String) item));
+                } else if (item instanceof Integer) {
+                    listBuilder.add(IntBinaryTag.intBinaryTag((Integer) item));
+                } else if (item instanceof Byte) {
+                    listBuilder.add(ByteBinaryTag.byteBinaryTag((Byte) item));
+                } else if (item instanceof Long) {
+                    listBuilder.add(LongBinaryTag.longBinaryTag((Long) item));
+                } else if (item instanceof Short) {
+                    listBuilder.add(ShortBinaryTag.shortBinaryTag((Short) item));
+                } else if (item instanceof Float) {
+                    listBuilder.add(FloatBinaryTag.floatBinaryTag((Float) item));
+                } else if (item instanceof Double) {
+                    listBuilder.add(DoubleBinaryTag.doubleBinaryTag((Double) item));
+                } else if (item instanceof byte[]) {
+                    listBuilder.add(ByteArrayBinaryTag.byteArrayBinaryTag((byte[]) item).asBinaryTag());
+                } else if (item instanceof int[]) {
+                    listBuilder.add(IntArrayBinaryTag.intArrayBinaryTag((int[]) item).asBinaryTag());
+                } else if (item instanceof long[]) {
+                    listBuilder.add(LongArrayBinaryTag.longArrayBinaryTag((long[]) item).asBinaryTag());
+                }
+            }
+            output.put(key, listBuilder.build());
+        }
     }
 }
