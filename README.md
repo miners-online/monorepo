@@ -1,7 +1,10 @@
 # monorepo
 
-This is our monorepo, it replaces the independent repos we used to have. All our games and related services can be
-found here.
+Welcome to the monorepo containing all core code for our Minecraft server ecosystem. Here you'll find the source for our
+games, shared packages, and essential backend services. This unified repository streamlines development, encourages code
+reuse, and simplifies collaboration across all aspects of our Minecraft server infrastructure.
+
+## Structure
 
 - Games:
   - [Cave Run](./games/cave-run/) (placeholder)
@@ -14,9 +17,7 @@ found here.
   - [Server Bootstrap](./packages/server-bootstrap/) - The server bootstrapper, used to start all our games
   - [World Management](./packages/world-management/) - Tools for managing worlds and schematics
 - Services:
-  - [Permissions Manager](./services/permissions-manager/) (placeholder)
-  - [Player Profiles](./services/player-profiles/) (placeholder)
-  - [Statistics](./services/statistics/) (placeholder)
+  - [API Service](./services/api-service/) - The API service, used for profile management, matchmaking, etc
 
 ## Why a monorepo?
 
