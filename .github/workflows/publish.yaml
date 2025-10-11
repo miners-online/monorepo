@@ -13,10 +13,44 @@ jobs:
       REGISTRY: ghcr.io
       OWNER: ${{ github.repository_owner }}
 
+    strategy:
+      matrix:
+        include:
+          - project: games-lobby
+            work_path: games/lobby
+            image_name: game-lobby
+            image_path: scripts/Dockerfile
+#          - project: games-golf
+#            work_path: games/golf
+#            image_name: game-golf
+#            image_path: scripts/Dockerfile
+
     steps:
       # Checkout the repository
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Cache Gradle dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
+
+      - name: Build ${{ matrix.project }}
+        working-directory: ${{ matrix.work_path }}
+        run: |
+          chmod +x ./gradlew
+          ./gradlew build --no-daemon
 
       # Log in to GitHub Container Registry
       - name: Log in to GitHub Container Registry
@@ -26,8 +60,12 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Build and push multiple Docker images
-      - name: Build and push Docker images
-        run: |
-          chmod +x ./docker-build.sh
-          ./docker-build.sh
+      - name: Build and push Docker image for ${{ matrix.project }}
+        uses: docker/build-push-action@v6
+        with:
+          context: ./${{ matrix.work_path }}
+          file: ./${{ matrix.image_path }}/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ env.IMAGE_OWNER }}/${{ matrix.image_name }}:latest
+            ghcr.io/${{ env.IMAGE_OWNER }}/${{ matrix.image_name }}:${{ github.sha }}
