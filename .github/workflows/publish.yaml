@@ -67,5 +67,5 @@ jobs:
           file: ./${{ matrix.image_path }}/Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ env.IMAGE_OWNER }}/${{ matrix.image_name }}:latest
-            ghcr.io/${{ env.IMAGE_OWNER }}/${{ matrix.image_name }}:${{ github.sha }}
+            ghcr.io/miners-online/${{ matrix.image_name }}:latest
+            ghcr.io/miners-online/${{ matrix.image_name }}:${{ github.sha }}
