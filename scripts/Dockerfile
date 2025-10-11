@@ -1,11 +1,13 @@
 FROM eclipse-temurin:21-jre-alpine
 
+# This argument will tell the Dockerfile which project to build
+ARG WORK_PATH
+
 WORKDIR /app
 
-COPY ./build .
-
-# Copy the shadow jar from the builder stage
-COPY --from=builder ./build/libs/*-all.jar app.jar
+# Copy the build output of the target project into the image
+# The build context will be the repo root, so this path is valid
+COPY ${WORK_PATH}/build/libs/*-all.jar app.jar
 
 # Expose port
 EXPOSE 25565

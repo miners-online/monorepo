@@ -63,9 +63,11 @@ jobs:
       - name: Build and push Docker image for ${{ matrix.project }}
         uses: docker/build-push-action@v6
         with:
-          context: ./${{ matrix.work_path }}
-          file: ./${{ matrix.image_path }}
+          context: .                # build from repo root so all files are visible
+          file: scripts/Dockerfile  # single shared Dockerfile
           push: true
+          build-args: |
+            WORK_PATH=${{ matrix.work_path }}
           tags: |
             ghcr.io/miners-online/${{ matrix.image_name }}:latest
             ghcr.io/miners-online/${{ matrix.image_name }}:${{ github.sha }}
