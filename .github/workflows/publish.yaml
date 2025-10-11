@@ -4,7 +4,7 @@ name: Build and Publish Docker Images
 on:
   push:
     branches:
-      - '**'
+      - 'main'
 
 jobs:
   build-and-push:
@@ -19,11 +19,11 @@ jobs:
           - project: games-lobby
             work_path: games/lobby
             image_name: game-lobby
-            image_path: scripts/Dockerfile
+            image_path: ../../scripts/Dockerfile
 #          - project: games-golf
 #            work_path: games/golf
 #            image_name: game-golf
-#            image_path: scripts/Dockerfile
+#            image_path: ../../scripts/Dockerfile
 
     steps:
       # Checkout the repository
@@ -64,7 +64,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: ./${{ matrix.work_path }}
-          file: ./${{ matrix.image_path }}/Dockerfile
+          file: ./${{ matrix.image_path }}
           push: true
           tags: |
             ghcr.io/miners-online/${{ matrix.image_name }}:latest
