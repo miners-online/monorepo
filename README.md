@@ -6,17 +6,18 @@ reuse, and simplifies collaboration across all aspects of our Minecraft server i
 
 ## Structure
 
-- Games:
+- [**Backend Services**](./backend-services/) - A Django backend for managing users, games, and stats
+  - [Status Service](./backend-services/status/) - A simple status api for health checks and uptime monitoring
+- **Games**:
   - [Cave Run](./games/cave-run/) (placeholder)
   - [Golf](./games/golf/) (placeholder)
   - [Lobby](./games/lobby/) - The lobby server, where players first join
   - [Mind Bending](./games/mind-bending/) (placeholder)
-- Packages:
+- **Packages**:
   - [Game Management](./packages/game-management/) (placeholder)
   - [Game Materials](./packages/game-materials/) - Common block handlers and entities used across multiple games
   - [Server Bootstrap](./packages/server-bootstrap/) - The server bootstrapper, used to start all our games
   - [World Management](./packages/world-management/) - Tools for managing worlds and schematics
-- [Backend Services](./backend-services/) - A Django backend for managing users, games, and stats
 
 ## Why a monorepo?
 

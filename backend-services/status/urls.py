@@ -1,5 +1,5 @@
 from django.urls import path
-from example.views import index
+from status.views import index
 
 urlpatterns = [
     path("", index),
