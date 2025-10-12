@@ -16,8 +16,7 @@ reuse, and simplifies collaboration across all aspects of our Minecraft server i
   - [Game Materials](./packages/game-materials/) - Common block handlers and entities used across multiple games
   - [Server Bootstrap](./packages/server-bootstrap/) - The server bootstrapper, used to start all our games
   - [World Management](./packages/world-management/) - Tools for managing worlds and schematics
-- Services:
-  - [API Service](./services/api-service/) - The API service, used for profile management, matchmaking, etc
+- [Backend Services](./backend-services/) - A Django backend for managing users, games, and stats
 
 ## Why a monorepo?
 
