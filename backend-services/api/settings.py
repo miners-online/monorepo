@@ -31,11 +31,16 @@ SECRET_KEY = os.getenv(
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG", "False").lower() in ("true", "1", "t")
+ENVIRONMENT = os.getenv("ENVIRONMENT", "production")
 
 ALLOWED_HOSTS = ["127.0.0.1", "localhost", ".vercel.app", ".minersonline.uk"]
+ROOT_HOSTCONF = "api.hosts"
+DEFAULT_HOST = "api"
+
 # Application definition
 
 INSTALLED_APPS = [
+    "django_hosts",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -45,6 +50,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    "django_hosts.middleware.HostsRequestMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -52,6 +58,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "django_hosts.middleware.HostsResponseMiddleware",
 ]
 
 ROOT_URLCONF = "api.urls"
