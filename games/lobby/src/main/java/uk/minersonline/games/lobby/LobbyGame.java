@@ -9,6 +9,7 @@ import net.minestom.server.event.GlobalEventHandler;
 import net.minestom.server.event.player.AsyncPlayerConfigurationEvent;
 import net.minestom.server.instance.InstanceContainer;
 import net.minestom.server.world.DimensionType;
+import uk.minersonline.games.game_materials.RemotePlayerData;
 import uk.minersonline.games.server_bootstrap.feature.FeatureRegistry;
 import uk.minersonline.games.server_bootstrap.game.Game;
 import uk.minersonline.games.world_management.MinestomSchematic;
@@ -24,6 +25,7 @@ public class LobbyGame extends Game {
     @Override
     public void onInit() {
         geh = MinecraftServer.getGlobalEventHandler();
+        RemotePlayerData.register();
         LobbySignHandler.register();
 
         if (FeatureRegistry.isFeatureLoaded(Key.key("miners_online:world_management"))) {
