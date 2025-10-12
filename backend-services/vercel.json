@@ -1,6 +1,15 @@
 {
   "version": 2,
-  "buildCommand": "bash build_files.sh",
+  "builds": [
+    {
+      "src": "build_files.sh",
+      "use": "@vercel/python"
+    },
+    {
+      "src": "api/wsgi.py",
+      "use": "@vercel/python"
+    }
+  ],
   "routes": [
     {
       "src": "/static/(.*)",
