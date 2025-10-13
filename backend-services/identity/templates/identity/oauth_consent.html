@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consent</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #3273dc;
+            --background-gradient: linear-gradient(135deg, #99b3ca7d 0%, #3c65b7 100%);
+        }
+        
+        body {
+            background: var(--background-gradient);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+        
+        .auth-container {
+            width: 100%;
+            max-width: 650px;
+            padding: 1.5rem;
+        }
+        
+        .auth-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 3rem 2.5rem;
+        }
+        
+        .auth-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .app-info {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .app-icon {
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+        }
+        
+        .arrow-icon {
+            color: #b5b5b5;
+            font-size: 1.25rem;
+        }
+        
+        .user-icon {
+            width: 56px;
+            height: 56px;
+            background: #f5f5f5;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: #7a7a7a;
+        }
+        
+        .auth-header h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #363636;
+            margin-bottom: 0.5rem;
+        }
+        
+        .auth-header p {
+            color: #7a7a7a;
+            font-size: 0.95rem;
+        }
+        
+        .app-name {
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+        
+        .permissions-section {
+            margin: 2rem 0;
+        }
+        
+        .permissions-title {
+            font-weight: 700;
+            color: #363636;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+        
+        .permission-item {
+            display: flex;
+            align-items: flex-start;
+            padding: 1rem;
+            background: #f9f9f9;
+            border-radius: 8px;
+            margin-bottom: 0.75rem;
+            transition: all 0.3s ease;
+        }
+        
+        .permission-item:hover {
+            background: #f5f5f5;
+        }
+        
+        .permission-icon {
+            width: 40px;
+            height: 40px;
+            background: white;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+            flex-shrink: 0;
+        }
+        
+        .permission-icon i {
+            color: var(--primary-color);
+            font-size: 1.1rem;
+        }
+        
+        .permission-content h3 {
+            font-weight: 600;
+            color: #363636;
+            margin-bottom: 0.25rem;
+            font-size: 1rem;
+        }
+        
+        .permission-content p {
+            color: #7a7a7a;
+            font-size: 0.875rem;
+            line-height: 1.4;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        
+        .button {
+            flex: 1;
+            border-radius: 8px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        
+        .button.is-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        .button.is-primary:hover {
+            background: #2366d1;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(50, 115, 220, 0.4);
+        }
+        
+        .button.is-light {
+            background: white;
+            border-color: #e8e8e8;
+            color: #363636;
+        }
+        
+        .button.is-light:hover {
+            border-color: #d0d0d0;
+            background: #f9f9f9;
+        }
+        
+        .security-note {
+            text-align: center;
+            color: #7a7a7a;
+            font-size: 0.875rem;
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: #f9f9f9;
+            border-radius: 8px;
+            line-height: 1.5;
+        }
+        
+        .security-note i {
+            color: #48c774;
+            margin-right: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="app-info">
+                    <div class="app-icon">
+                        <i class="fas fa-cube"></i>
+                    </div>
+                    <div class="arrow-icon">
+                        <i class="fas fa-arrow-right"></i>
+                    </div>
+                    <div class="user-icon">
+                        <i class="fas fa-user"></i>
+                    </div>
+                </div>
+                <h1>Authorize Access</h1>
+                <p><span class="app-name">ThirdParty App</span> wants to access your account</p>
+            </div>
+            
+            <div class="permissions-section">
+                <div class="permissions-title">This application will be able to:</div>
+                
+                <div class="permission-item">
+                    <div class="permission-icon">
+                        <i class="fas fa-user-circle"></i>
+                    </div>
+                    <div class="permission-content">
+                        <h3>Read your profile information</h3>
+                        <p>Access your name, email address, and profile picture</p>
+                    </div>
+                </div>
+                
+                <div class="permission-item">
+                    <div class="permission-icon">
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                    <div class="permission-content">
+                        <h3>Access your email</h3>
+                        <p>View your email address and send emails on your behalf</p>
+                    </div>
+                </div>
+                
+                <div class="permission-item">
+                    <div class="permission-icon">
+                        <i class="fas fa-database"></i>
+                    </div>
+                    <div class="permission-content">
+                        <h3>Manage your data</h3>
+                        <p>Read, create, and update your application data</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="button-group">
+                <button class="button is-light" type="button">
+                    Cancel
+                </button>
+                <button class="button is-primary" type="button">
+                    Authorize
+                </button>
+            </div>
+            
+            <div class="security-note">
+                <i class="fas fa-shield-alt"></i>
+                You can revoke access at any time from your account settings
+            </div>
+        </div>
+    </div>
+</body>
+</html>

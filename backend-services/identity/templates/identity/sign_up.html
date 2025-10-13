@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #3273dc;
+            --background-gradient: linear-gradient(135deg, #99b3ca7d 0%, #3c65b7 100%);
+        }
+        
+        body {
+            background: var(--background-gradient);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+        
+        .auth-container {
+            width: 100%;
+            max-width: 650px;
+            padding: 1.5rem;
+        }
+        
+        .auth-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 3rem 2.5rem;
+        }
+        
+        .auth-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .auth-header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #363636;
+            margin-bottom: 0.5rem;
+        }
+        
+        .auth-header p {
+            color: #7a7a7a;
+            font-size: 0.95rem;
+        }
+        
+        .field {
+            margin-bottom: 1.5rem;
+        }
+        
+        .label {
+            font-weight: 600;
+            color: #363636;
+            margin-bottom: 0.5rem;
+        }
+        
+        .input {
+            border-radius: 8px;
+            border: 2px solid #e8e8e8;
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(50, 115, 220, 0.1);
+        }
+        
+        .button.is-primary {
+            background: var(--primary-color);
+            border: none;
+            border-radius: 8px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+        
+        .button.is-primary:hover {
+            background: #2366d1;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(50, 115, 220, 0.4);
+        }
+        
+        .divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            margin: 1.5rem 0;
+            color: #7a7a7a;
+            font-size: 0.875rem;
+        }
+        
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid #e8e8e8;
+        }
+        
+        .divider span {
+            padding: 0 1rem;
+        }
+        
+        .social-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .button.is-light {
+            border: 2px solid #e8e8e8;
+            border-radius: 8px;
+            background: white;
+            flex: 1;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .button.is-light:hover {
+            border-color: #d0d0d0;
+            background: #f9f9f9;
+        }
+        
+        .auth-footer {
+            text-align: center;
+            margin-top: 1.5rem;
+            color: #7a7a7a;
+            font-size: 0.95rem;
+        }
+        
+        .auth-footer a {
+            color: var(--primary-color);
+            font-weight: 600;
+            text-decoration: none;
+        }
+        
+        .auth-footer a:hover {
+            text-decoration: underline;
+        }
+        
+        .terms-text {
+            font-size: 0.875rem;
+            color: #7a7a7a;
+            text-align: center;
+            margin-top: 1rem;
+            line-height: 1.5;
+        }
+        
+        .terms-text a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+        
+        .terms-text a:hover {
+            text-decoration: underline;
+        }
+        
+        .name-fields {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .name-fields .field {
+            flex: 1;
+        }
+
+        .password-requirements {
+            background: #f5f5f5;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .password-requirements h3 {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #363636;
+            margin-bottom: 0.75rem;
+        }
+        
+        .password-requirements ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .password-requirements li {
+            font-size: 0.875rem;
+            color: #7a7a7a;
+            padding: 0.25rem 0;
+            display: flex;
+            align-items: center;
+        }
+        
+        .password-requirements li i {
+            margin-right: 0.5rem;
+            font-size: 0.75rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <h1>Create an account</h1>
+                <p>Get started with your free account</p>
+            </div>
+            
+            <form>
+                <div class="name-fields">
+                    <div class="field">
+                        <label class="label">First name</label>
+                        <div class="control">
+                            <input class="input" type="text" placeholder="John" required>
+                        </div>
+                    </div>
+                    
+                    <div class="field">
+                        <label class="label">Last name</label>
+                        <div class="control">
+                            <input class="input" type="text" placeholder="Doe" required>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="field">
+                    <label class="label">Email address</label>
+                    <div class="control has-icons-left">
+                        <input class="input" type="email" placeholder="you@example.com" required>
+                        <span class="icon is-small is-left">
+                            <i class="fas fa-envelope"></i>
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="field">
+                    <label class="label">Password</label>
+                    <div class="control has-icons-left">
+                        <input class="input" type="password" placeholder="Create a strong password" required>
+                        <span class="icon is-small is-left">
+                            <i class="fas fa-lock"></i>
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="field">
+                    <label class="label">Confirm password</label>
+                    <div class="control has-icons-left">
+                        <input class="input" type="password" placeholder="Confirm your password" required>
+                        <span class="icon is-small is-left">
+                            <i class="fas fa-lock"></i>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="password-requirements">
+                    <h3>Password requirements:</h3>
+                    <ul>
+                        <li>
+                            <i class="fas fa-circle"></i>
+                            At least 8 characters long
+                        </li>
+                        <li>
+                            <i class="fas fa-circle"></i>
+                            Contains at least one uppercase letter
+                        </li>
+                        <li>
+                            <i class="fas fa-circle"></i>
+                            Contains at least one number
+                        </li>
+                        <li>
+                            <i class="fas fa-circle"></i>
+                            Contains at least one special character
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="field">
+                    <button class="button is-primary" type="submit">
+                        Create account
+                    </button>
+                </div>
+                
+                <div class="terms-text">
+                    By signing up, you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>
+                </div>
+            </form>
+            
+            <div class="divider">
+                <span>or sign up with</span>
+            </div>
+            
+            <div class="social-buttons">
+                <button class="button is-light">
+                    <span class="icon">
+                        <i class="fab fa-google"></i>
+                    </span>
+                    <span>Google</span>
+                </button>
+                <button class="button is-light">
+                    <span class="icon">
+                        <i class="fab fa-github"></i>
+                    </span>
+                    <span>GitHub</span>
+                </button>
+            </div>
+            
+            <div class="auth-footer">
+                Already have an account? <a href="sign-in.html">Sign in</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

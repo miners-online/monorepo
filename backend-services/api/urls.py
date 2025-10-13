@@ -19,9 +19,12 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 
-admin_urls = [path("admin/", admin.site.urls)]
+external_urls = [
+    path("admin/", admin.site.urls),
+    path("identity/", include("identity.urls")),
+]
 
 urlpatterns = [
     path("api/v1/status/", include("status.urls")),
     path("", include("status.urls")),
-] + (admin_urls if settings.ENVIRONMENT == "development" else [])
+] + (external_urls if settings.ENVIRONMENT == "development" else [])

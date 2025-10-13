@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Two-Factor Authentication</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #3273dc;
+            --background-gradient: linear-gradient(135deg, #99b3ca7d 0%, #3c65b7 100%);
+        }
+        
+        body {
+            background: var(--background-gradient);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+        
+        .auth-container {
+            width: 100%;
+            max-width: 650px;
+            padding: 1.5rem;
+        }
+        
+        .auth-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 3rem 2.5rem;
+        }
+        
+        .auth-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .auth-icon {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+        }
+        
+        .auth-icon i {
+            font-size: 1.75rem;
+            color: white;
+        }
+        
+        .auth-header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #363636;
+            margin-bottom: 0.5rem;
+        }
+        
+        .auth-header p {
+            color: #7a7a7a;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+        
+        .field {
+            margin-bottom: 1.5rem;
+        }
+        
+        .label {
+            font-weight: 600;
+            color: #363636;
+            margin-bottom: 0.5rem;
+            text-align: center;
+        }
+        
+        .code-inputs {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .code-input {
+            width: 3.5rem;
+            height: 3.5rem;
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            border-radius: 8px;
+            border: 2px solid #e8e8e8;
+            transition: all 0.3s ease;
+        }
+        
+        .code-input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(50, 115, 220, 0.1);
+            outline: none;
+        }
+        
+        .button.is-primary {
+            background: var(--primary-color);
+            border: none;
+            border-radius: 8px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+        
+        .button.is-primary:hover {
+            background: #2366d1;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(50, 115, 220, 0.4);
+        }
+        
+        .button.is-text {
+            color: var(--primary-color);
+            text-decoration: none;
+            background: none;
+            border: none;
+            font-weight: 600;
+            width: 100%;
+            margin-top: 1rem;
+        }
+        
+        .button.is-text:hover {
+            background: #f5f5f5;
+            text-decoration: underline;
+        }
+        
+        .auth-footer {
+            text-align: center;
+            margin-top: 1.5rem;
+            color: #7a7a7a;
+            font-size: 0.95rem;
+        }
+        
+        .auth-footer a {
+            color: var(--primary-color);
+            font-weight: 600;
+            text-decoration: none;
+        }
+        
+        .auth-footer a:hover {
+            text-decoration: underline;
+        }
+        
+        .help-text {
+            text-align: center;
+            color: #7a7a7a;
+            font-size: 0.875rem;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="auth-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <h1>Two-Factor Authentication</h1>
+                <p>Enter the 6-digit code from your authenticator app</p>
+            </div>
+            
+            <form>
+                <div class="field">
+                    <label class="label">Verification Code</label>
+                    <div class="code-inputs">
+                        <input class="code-input" type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" required>
+                        <input class="code-input" type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" required>
+                        <input class="code-input" type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" required>
+                        <input class="code-input" type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" required>
+                        <input class="code-input" type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" required>
+                        <input class="code-input" type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" required>
+                    </div>
+                </div>
+                
+                <div class="field">
+                    <button class="button is-primary" type="submit">
+                        Verify and continue
+                    </button>
+                </div>
+                
+                <button class="button is-text" type="button">
+                    Use backup code instead
+                </button>
+                
+                <div class="help-text">
+                    Didn't receive a code? Check your authenticator app
+                </div>
+            </form>
+            
+            <div class="auth-footer">
+                <a href="sign-in.html">← Back to sign in</a>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Auto-focus next input when a digit is entered
+        const inputs = document.querySelectorAll('.code-input');
+        inputs.forEach((input, index) => {
+            input.addEventListener('input', (e) => {
+                if (e.target.value.length === 1 && index < inputs.length - 1) {
+                    inputs[index + 1].focus();
+                }
+            });
+            
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace' && e.target.value === '' && index > 0) {
+                    inputs[index - 1].focus();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
