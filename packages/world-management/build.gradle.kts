@@ -14,7 +14,7 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter")
 
     implementation("net.sandrohc:schematic4j:1.1.0")
-    compileOnly("net.minestom:minestom:2025.10.05-1.21.8")
+    compileOnly("net.minestom:minestom:2026.01.08-1.21.11")
     compileOnly(project(":server-bootstrap"))
 }
 

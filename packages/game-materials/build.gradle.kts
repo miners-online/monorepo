@@ -13,7 +13,7 @@ dependencies {
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
 
-    compileOnly("net.minestom:minestom:2025.10.05-1.21.8")
+    compileOnly("net.minestom:minestom:2026.01.08-1.21.11")
 }
 
 tasks.test {
