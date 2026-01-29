@@ -14,9 +14,9 @@ dependencies {
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     implementation("net.minestom:minestom:2026.01.08-1.21.11")
+    implementation("dev.hollowcube:schem:2.0.1")
     implementation(project(":game-materials"))
     implementation(project(":server-bootstrap"))
-    implementation(project(":world-management"))
 }
 
 tasks.test {
