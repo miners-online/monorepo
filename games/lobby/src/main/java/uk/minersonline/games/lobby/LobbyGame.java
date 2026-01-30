@@ -23,6 +23,7 @@ import net.minestom.server.instance.block.BlockManager;
 import net.minestom.server.world.DimensionType;
 import uk.minersonline.games.game_materials.ProxyUtils;
 import uk.minersonline.games.game_materials.RemotePlayerData;
+import uk.minersonline.games.game_materials.WorldID;
 import uk.minersonline.games.server_bootstrap.game.Game;
 
 import java.io.FileInputStream;
@@ -38,17 +39,16 @@ public class LobbyGame extends Game {
     private int spawnRadius = 1;
     private InstanceContainer instance;
     private LobbySignHandler lobbySignHandler;
+    private int worldId;
 
     @Override
     public void onInit() {
         geh = MinecraftServer.getGlobalEventHandler();
         RemotePlayerData.register();
-        
-        
+
         lobbySignHandler = new LobbySignHandler(this);
         BlockManager blockManager = MinecraftServer.getBlockManager();
         blockManager.registerHandler(Key.key("minecraft:sign"), () -> lobbySignHandler);
-
 
         spawnPoint = new Pos(0.5, 1, 0.5);
 
@@ -57,6 +57,7 @@ public class LobbyGame extends Game {
         instance.setChunkSupplier(LightingChunk::new);
         instance.setTimeRate(0);
         instance.setTime(12000);
+        worldId = WorldID.generateWorldId();
 
         // Preload chunks around spawn
         var chunks = new ArrayList<CompletableFuture<Chunk>>();
@@ -112,6 +113,8 @@ public class LobbyGame extends Game {
             double offsetX = (Math.random() * 2 - 1) * spawnRadius;
             double offsetZ = (Math.random() * 2 - 1) * spawnRadius;
             player.teleport(spawnPoint.add(offsetX, 0, offsetZ));
+
+            WorldID.sendWorldId(player, worldId);
         });
     }
 
