@@ -17,6 +17,12 @@ import uk.minersonline.games.game_materials.entities.FakePlayer;
 import java.util.Objects;
 
 public class LobbySignHandler extends SignBlockHandler {
+    private final LobbyGame lobbyGame;
+
+    public LobbySignHandler(LobbyGame lobbyGame) {
+        this.lobbyGame = lobbyGame;
+    }
+
     @Override
     public void onPlace(@NotNull Placement placement) {
         super.onPlace(placement);
@@ -39,13 +45,37 @@ public class LobbySignHandler extends SignBlockHandler {
             FakePlayer npc = new FakePlayer(Component.text(description), skinName);
             npc.setInstance(placement.getInstance(), placement.getBlockPosition().add(0.5, 0, 0.5));
             npc.setView(yawForSign(placement.getBlock()), 0.0f);
+            npc.setNoGravity(true);
+            npc.setOnInteract(player -> {
+                player.sendMessage(Component.text("Hello from " + description + "!"));
+                return null;
+            });
+        }
+
+        if (firstLine.equalsIgnoreCase("[spawn-point]")) {
+            int radius = 1;
+
+            // Find first line with radius=
+            for (int i = 1; i < messages.size(); i++) {
+                String line = messages.getString(i);
+                if (line.toLowerCase().startsWith("radius=")) {
+                    try {
+                        radius = Integer.parseInt(line.substring(7).trim());
+                    } catch (NumberFormatException ignored) {
+                    }
+                    break;
+                }
+            }
+
+            lobbyGame.setSpawn(placement.getBlockPosition().add(0.5, 1, 0.5).asPos(), radius);
+            placement.getInstance().setBlock(placement.getBlockPosition(), Block.AIR);
         }
     }
 
-    public static void register() {
+    public static void register(LobbyGame lobbyGame) {
         BlockManager blockManager = MinecraftServer.getBlockManager();
         RegistryTag<Block> tag = Block.staticRegistry().getTag(TagKey.ofHash("#minecraft:all_signs"));
-        LobbySignHandler signHandler = new LobbySignHandler();
+        LobbySignHandler signHandler = new LobbySignHandler(lobbyGame);
         for (RegistryKey<Block> key : Objects.requireNonNull(tag)) {
             blockManager.registerHandler(key.key(), () -> signHandler);
         }

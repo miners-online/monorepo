@@ -29,13 +29,14 @@ import org.jetbrains.annotations.Nullable;
 public class LobbyGame extends Game {
     private GlobalEventHandler geh;
     private Pos spawnPoint;
+    private int spawnRadius = 1;
     private InstanceContainer instance;
 
     @Override
     public void onInit() {
         geh = MinecraftServer.getGlobalEventHandler();
         RemotePlayerData.register();
-        LobbySignHandler.register();
+        LobbySignHandler.register(this);
 
         InstanceManager manager = MinecraftServer.getInstanceManager();
         instance = manager.createInstanceContainer();
@@ -81,12 +82,22 @@ public class LobbyGame extends Game {
             event.setSpawningInstance(instance);
             player.setGameMode(GameMode.CREATIVE);
             player.setRespawnPoint(spawnPoint);
+
+            // Teleport to a random point within spawn radius
+            double offsetX = (Math.random() * 2 - 1) * spawnRadius;
+            double offsetZ = (Math.random() * 2 - 1) * spawnRadius;
+            player.teleport(spawnPoint.add(offsetX, 0, offsetZ));
         });
     }
 
     @Override
     public void onStop() {
 
+    }
+
+    public void setSpawn(Pos spawnPoint, int radius) {
+        this.spawnPoint = spawnPoint;
+        this.spawnRadius = radius;
     }
 
     /**
