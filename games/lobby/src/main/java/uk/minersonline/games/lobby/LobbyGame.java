@@ -21,6 +21,7 @@ import net.minestom.server.instance.LightingChunk;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.instance.block.BlockManager;
 import net.minestom.server.world.DimensionType;
+import uk.minersonline.games.game_materials.InstanceLock;
 import uk.minersonline.games.game_materials.ProxyUtils;
 import uk.minersonline.games.game_materials.RemotePlayerData;
 import uk.minersonline.games.game_materials.WorldID;
@@ -38,6 +39,7 @@ public class LobbyGame extends Game {
     private Pos spawnPoint;
     private int spawnRadius = 1;
     private InstanceContainer instance;
+    private InstanceLock instanceLock;
     private LobbySignHandler lobbySignHandler;
     private int worldId;
 
@@ -57,6 +59,7 @@ public class LobbyGame extends Game {
         instance.setChunkSupplier(LightingChunk::new);
         instance.setTimeRate(0);
         instance.setTime(12000);
+        instanceLock = new InstanceLock(instance);
         worldId = WorldID.generateWorldId();
 
         // Preload chunks around spawn
@@ -88,7 +91,10 @@ public class LobbyGame extends Game {
 
             LightingChunk.relight(instance, instance.getChunks());
         });
+    }
 
+    @Override
+    public void onStart() {
         geh.addListener(PlayerEntityInteractEvent.class, event -> {
             Entity entity = event.getTarget();
             if (entity.hasTag(LobbySignHandler.NPC_TAG)) {
@@ -96,15 +102,14 @@ public class LobbyGame extends Game {
                 ProxyUtils.transfer(event.getPlayer(), serverName);
             }
         });
-    }
 
-    @Override
-    public void onStart() {
         geh.addListener(AsyncPlayerConfigurationEvent.class, event -> {
             final Player player = event.getPlayer();
             event.setSpawningInstance(instance);
-            player.setGameMode(GameMode.CREATIVE);
+            player.setGameMode(GameMode.ADVENTURE);
             player.setRespawnPoint(spawnPoint);
+            InstanceLock.lockPlayerBlock(player);
+            InstanceLock.lockPlayerItem(player);
         });
 
         geh.addListener(PlayerSpawnEvent.class, event -> {
