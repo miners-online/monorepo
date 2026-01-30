@@ -1,47 +1,27 @@
 package uk.minersonline.games.game_materials.entities;
 
+import net.kyori.adventure.text.Component;
+import net.minestom.server.component.DataComponents;
 import net.minestom.server.entity.*;
-import net.minestom.server.network.packet.server.play.EntityMetaDataPacket;
-import net.minestom.server.network.packet.server.play.PlayerInfoRemovePacket;
-import net.minestom.server.network.packet.server.play.PlayerInfoUpdatePacket;
+import net.minestom.server.entity.metadata.avatar.MannequinMeta;
+import net.minestom.server.network.player.ResolvableProfile;
+
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Map;
-
-@SuppressWarnings("UnstableApiUsage")
 public class FakePlayer extends Entity {
-    private final String username;
-    private final PlayerSkin skin;
+    private final Component description;
+    private final ResolvableProfile profile;
 
-    public FakePlayer(@NotNull String username, @NotNull String skinName) {
-        super(EntityType.PLAYER);
-        this.username = username;
+    public FakePlayer(@NotNull Component description, @NotNull String skinName) {
+        super(EntityType.MANNEQUIN);
+        this.description = description;
 
-        this.skin = PlayerSkin.fromUsername(skinName);
+        PlayerSkin skin = PlayerSkin.fromUsername(skinName);
+        this.profile = new ResolvableProfile(skin);
 
         setNoGravity(true);
-    }
-
-    @Override
-    public void updateNewViewer(@NotNull Player player) {
-        var properties = new ArrayList<PlayerInfoUpdatePacket.Property>();
-        properties.add(new PlayerInfoUpdatePacket.Property("textures", skin.textures(), skin.signature()));
-        var entry = new PlayerInfoUpdatePacket.Entry(getUuid(), username, properties, false,
-                0, GameMode.SURVIVAL, null, null, 0, true);
-        player.sendPacket(new PlayerInfoUpdatePacket(PlayerInfoUpdatePacket.Action.ADD_PLAYER, entry));
-
-        // Spawn the player entity
-        super.updateNewViewer(player);
-
-        // Enable skin layers
-        player.sendPackets(new EntityMetaDataPacket(getEntityId(), Map.of(17, Metadata.Byte((byte) 127))));
-    }
-
-    @Override
-    public void updateOldViewer(@NotNull Player player) {
-        super.updateOldViewer(player);
-
-        player.sendPacket(new PlayerInfoRemovePacket(getUuid()));
+        MannequinMeta meta = (MannequinMeta) this.getEntityMeta();
+        meta.setProfile(this.profile);
+        this.set(DataComponents.CUSTOM_NAME, this.description);
     }
 }

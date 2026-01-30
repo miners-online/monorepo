@@ -4,7 +4,6 @@ import net.kyori.adventure.nbt.CompoundBinaryTag;
 import net.kyori.adventure.nbt.ListBinaryTag;
 import net.kyori.adventure.text.Component;
 import net.minestom.server.MinecraftServer;
-import net.minestom.server.component.DataComponents;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.instance.block.BlockManager;
 import net.minestom.server.registry.RegistryKey;
@@ -31,16 +30,15 @@ public class LobbySignHandler extends SignBlockHandler {
         String firstLine = messages.getString(0);
 
         if (firstLine.equalsIgnoreCase("[server-npc]")) {
-            String username = messages.getString(1);
-            if (username.isEmpty()) return;
+            String description = messages.getString(1);
+            if (description.isEmpty()) return;
             String skinName = messages.getString(2);
             if (skinName.isEmpty()) return;
 
             placement.getInstance().setBlock(placement.getBlockPosition(), Block.AIR);
-            FakePlayer npc = new FakePlayer(username, skinName);
+            FakePlayer npc = new FakePlayer(Component.text(description), skinName);
             npc.setInstance(placement.getInstance(), placement.getBlockPosition().add(0.5, 0, 0.5));
             npc.setView(yawForSign(placement.getBlock()), 0.0f);
-            npc.set(DataComponents.CUSTOM_NAME, Component.text(username));
         }
     }
 
