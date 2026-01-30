@@ -4,19 +4,24 @@ import net.kyori.adventure.nbt.CompoundBinaryTag;
 import net.kyori.adventure.nbt.ListBinaryTag;
 import net.kyori.adventure.text.Component;
 import net.minestom.server.MinecraftServer;
+import net.minestom.server.component.DataComponents;
+import net.minestom.server.entity.Entity;
+import net.minestom.server.entity.EntityType;
+import net.minestom.server.entity.PlayerSkin;
+import net.minestom.server.entity.metadata.avatar.MannequinMeta;
 import net.minestom.server.instance.block.Block;
-import net.minestom.server.instance.block.BlockManager;
-import net.minestom.server.registry.RegistryKey;
-import net.minestom.server.registry.RegistryTag;
-import net.minestom.server.registry.TagKey;
+import net.minestom.server.network.player.ResolvableProfile;
+import net.minestom.server.tag.Tag;
 import net.minestom.server.utils.Direction;
+
+import java.time.Duration;
+
 import org.jetbrains.annotations.NotNull;
 import uk.minersonline.games.game_materials.blocks.SignBlockHandler;
-import uk.minersonline.games.game_materials.entities.FakePlayer;
-
-import java.util.Objects;
 
 public class LobbySignHandler extends SignBlockHandler {
+    public static final Tag<String> NPC_TAG = Tag.String("lobby:server_npc");
+
     private final LobbyGame lobbyGame;
 
     public LobbySignHandler(LobbyGame lobbyGame) {
@@ -36,20 +41,24 @@ public class LobbySignHandler extends SignBlockHandler {
         String firstLine = messages.getString(0);
 
         if (firstLine.equalsIgnoreCase("[server-npc]")) {
-            String description = messages.getString(1);
-            if (description.isEmpty()) return;
+            String serverName = messages.getString(1);
+            if (serverName.isEmpty()) return;
             String skinName = messages.getString(2);
             if (skinName.isEmpty()) return;
 
-            placement.getInstance().setBlock(placement.getBlockPosition(), Block.AIR);
-            FakePlayer npc = new FakePlayer(Component.text(description), skinName);
+            Entity npc = new Entity(EntityType.MANNEQUIN);
             npc.setInstance(placement.getInstance(), placement.getBlockPosition().add(0.5, 0, 0.5));
             npc.setView(yawForSign(placement.getBlock()), 0.0f);
             npc.setNoGravity(true);
-            npc.setOnInteract(player -> {
-                player.sendMessage(Component.text("Hello from " + description + "!"));
-                return null;
-            });
+
+            MannequinMeta meta = (MannequinMeta) npc.getEntityMeta();
+            ResolvableProfile profile = new ResolvableProfile(PlayerSkin.fromUsername(skinName));
+            meta.setProfile(profile);
+            meta.setDescription(Component.text(""));
+            meta.setCustomNameVisible(true);
+            npc.set(DataComponents.CUSTOM_NAME, Component.text(serverName));
+
+            npc.setTag(NPC_TAG, serverName);
         }
 
         if (firstLine.equalsIgnoreCase("[spawn-point]")) {
@@ -68,17 +77,11 @@ public class LobbySignHandler extends SignBlockHandler {
             }
 
             lobbyGame.setSpawn(placement.getBlockPosition().add(0.5, 1, 0.5).asPos(), radius);
-            placement.getInstance().setBlock(placement.getBlockPosition(), Block.AIR);
         }
-    }
 
-    public static void register(LobbyGame lobbyGame) {
-        BlockManager blockManager = MinecraftServer.getBlockManager();
-        RegistryTag<Block> tag = Block.staticRegistry().getTag(TagKey.ofHash("#minecraft:all_signs"));
-        LobbySignHandler signHandler = new LobbySignHandler(lobbyGame);
-        for (RegistryKey<Block> key : Objects.requireNonNull(tag)) {
-            blockManager.registerHandler(key.key(), () -> signHandler);
-        }
+        MinecraftServer.getSchedulerManager().buildTask(() -> {
+            placement.getInstance().setBlock(placement.getBlockPosition(), Block.AIR);
+        }).delay(Duration.ofMillis(5)).schedule();
     }
 
     private float yawForSign(Block sign) {

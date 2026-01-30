@@ -3,19 +3,25 @@ package uk.minersonline.games.lobby;
 import net.hollowcube.schem.Schematic;
 import net.hollowcube.schem.reader.SchematicReader;
 import net.hollowcube.schem.util.Rotation;
+import net.kyori.adventure.key.Key;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.ChunkRange;
 import net.minestom.server.coordinate.Pos;
+import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.GameMode;
 import net.minestom.server.entity.Player;
 import net.minestom.server.event.GlobalEventHandler;
 import net.minestom.server.event.player.AsyncPlayerConfigurationEvent;
+import net.minestom.server.event.player.PlayerEntityInteractEvent;
+import net.minestom.server.event.player.PlayerSpawnEvent;
 import net.minestom.server.instance.Chunk;
 import net.minestom.server.instance.InstanceContainer;
 import net.minestom.server.instance.InstanceManager;
 import net.minestom.server.instance.LightingChunk;
 import net.minestom.server.instance.block.Block;
+import net.minestom.server.instance.block.BlockManager;
 import net.minestom.server.world.DimensionType;
+import uk.minersonline.games.game_materials.ProxyUtils;
 import uk.minersonline.games.game_materials.RemotePlayerData;
 import uk.minersonline.games.server_bootstrap.game.Game;
 
@@ -31,12 +37,20 @@ public class LobbyGame extends Game {
     private Pos spawnPoint;
     private int spawnRadius = 1;
     private InstanceContainer instance;
+    private LobbySignHandler lobbySignHandler;
 
     @Override
     public void onInit() {
         geh = MinecraftServer.getGlobalEventHandler();
         RemotePlayerData.register();
-        LobbySignHandler.register(this);
+        
+        
+        lobbySignHandler = new LobbySignHandler(this);
+        BlockManager blockManager = MinecraftServer.getBlockManager();
+        blockManager.registerHandler(Key.key("minecraft:sign"), () -> lobbySignHandler);
+
+
+        spawnPoint = new Pos(0.5, 1, 0.5);
 
         InstanceManager manager = MinecraftServer.getInstanceManager();
         instance = manager.createInstanceContainer();
@@ -61,8 +75,8 @@ public class LobbyGame extends Game {
                 }
 
                 Schematic schematic = SchematicReader.detecting().read(is.readAllBytes());
-                schematic.createBatch(Rotation.NONE).apply(instance, new Pos(0, 1, 0), (batch) -> {});
-                spawnPoint = new Pos(0.5, 1, 0.5);
+                double height = schematic.size().y() / 2;
+                schematic.createBatch(Rotation.NONE).apply(instance, new Pos(0, 0+height, 0), (batch) -> {});
                 BlockResult highestBlock = findHighestBlock(instance, 0, 0);
                 if (highestBlock != null) {
                     spawnPoint = new Pos(0.5, highestBlock.y() + 1, 0.5);
@@ -73,6 +87,14 @@ public class LobbyGame extends Game {
 
             LightingChunk.relight(instance, instance.getChunks());
         });
+
+        geh.addListener(PlayerEntityInteractEvent.class, event -> {
+            Entity entity = event.getTarget();
+            if (entity.hasTag(LobbySignHandler.NPC_TAG)) {
+                String serverName = entity.getTag(LobbySignHandler.NPC_TAG);
+                ProxyUtils.transfer(event.getPlayer(), serverName);
+            }
+        });
     }
 
     @Override
@@ -82,8 +104,11 @@ public class LobbyGame extends Game {
             event.setSpawningInstance(instance);
             player.setGameMode(GameMode.CREATIVE);
             player.setRespawnPoint(spawnPoint);
+        });
 
+        geh.addListener(PlayerSpawnEvent.class, event -> {
             // Teleport to a random point within spawn radius
+            final Player player = event.getPlayer();
             double offsetX = (Math.random() * 2 - 1) * spawnRadius;
             double offsetZ = (Math.random() * 2 - 1) * spawnRadius;
             player.teleport(spawnPoint.add(offsetX, 0, offsetZ));
