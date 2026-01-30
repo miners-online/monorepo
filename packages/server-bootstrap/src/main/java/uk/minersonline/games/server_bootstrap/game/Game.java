@@ -1,5 +1,6 @@
 package uk.minersonline.games.server_bootstrap.game;
 
+import uk.minersonline.games.server_bootstrap.ServerConfig;
 import uk.minersonline.games.server_bootstrap.feature.Feature;
 
 import java.util.List;
@@ -7,10 +8,12 @@ import java.util.List;
 public abstract class Game {
     private List<Feature> features;
     private GameConfig config;
+    private ServerConfig serverConfig;
 
-    public void init(List<Feature> featuresToLoad, GameConfig config) {
+    public void init(List<Feature> featuresToLoad, GameConfig config, ServerConfig serverConfig) {
         this.features = featuresToLoad;
         this.config = config;
+        this.serverConfig = serverConfig;
 
         if (features != null) {
             for (Feature feature : features) {
@@ -40,6 +43,10 @@ public abstract class Game {
 
     public GameConfig getConfig() {
         return config;
+    }
+
+    public ServerConfig getServerConfig() {
+        return serverConfig;
     }
 
     protected abstract void onInit();

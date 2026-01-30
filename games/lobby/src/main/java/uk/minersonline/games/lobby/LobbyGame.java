@@ -52,7 +52,7 @@ public class LobbyGame extends Game {
             CompletableFuture.allOf(chunks.toArray(CompletableFuture[]::new)).join();
             // Load schematic
             try {
-                String path = System.getenv("SCHEMATIC_PATH");
+                String path = this.getServerConfig().getProperties().getProperty("SCHEMATIC_PATH");
                 InputStream is;
                 if (path == null) {
                     is = this.getClass().getClassLoader().getResourceAsStream("void_platform.schem");

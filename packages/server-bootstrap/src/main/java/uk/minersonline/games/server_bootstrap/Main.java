@@ -2,8 +2,10 @@ package uk.minersonline.games.server_bootstrap;
 
 import net.kyori.adventure.key.InvalidKeyException;
 import net.kyori.adventure.key.Key;
-import net.minestom.server.Auth;
 import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerProcess;
+import net.minestom.server.exception.ExceptionManager;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.minersonline.games.server_bootstrap.feature.Feature;
@@ -14,19 +16,24 @@ import uk.minersonline.games.server_bootstrap.game.GameLocator;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 public class Main {
     private static final Logger logger = LoggerFactory.getLogger(Main.class);
     private final GameLocator locator;
 
+    private final ServerConfig serverConfig;
+    private static final String DEFAULT_CONFIG_PATH = "server.properties";
+    private static final String CONFIG_PATH_ENV = "CONFIG_PATH";
+
     public Main() {
         this.locator = new GameLocator();
+
+        String path = System.getenv().getOrDefault(CONFIG_PATH_ENV, DEFAULT_CONFIG_PATH);
+        this.serverConfig = new ServerConfig(path);
     }
 
     public void run() throws Exception {
-        MinecraftServer minecraftServer = MinecraftServer.init(configureAuth());
+        MinecraftServer minecraftServer = MinecraftServer.init(serverConfig.getAuth());
         MinecraftServer.setBrandName("Miners Online");
         MinecraftServer.getExceptionManager().setExceptionHandler((throwable) -> logger.error("Uncaught exception ", throwable));
         Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> logger.error("Uncaught exception in thread {}", thread.getName(), throwable));
@@ -77,7 +84,11 @@ public class Main {
             logger.warn("Some features failed to load: {}", String.join(", ", failedFeatures));
         }
 
-        game.init(features, locator.getConfig());
+        game.init(
+            features,
+            locator.getConfig(),
+            serverConfig
+        );
         game.start();
 
         Runtime.getRuntime().addShutdownHook(new Thread(game::stop));
@@ -90,43 +101,27 @@ public class Main {
                 loadedFeatures.isEmpty() ? "None" : String.join(", ", loadedFeatures)
         );
 
-        minecraftServer.start("0.0.0.0", 25565);
+        String address = serverConfig.getProperties().getProperty("SERVER_ADDRESS", "0.0.0.0");
+        int port = Integer.parseInt(serverConfig.getProperties().getProperty("SERVER_PORT", "25565"));
+        minecraftServer.start(address, port);
     }
 
     public static void main(String[] args) {
         try {
             new Main().run();
         } catch (Exception e) {
-            MinecraftServer.getExceptionManager().handleException(e);
-        }
-    }
-
-    private static Auth configureAuth() {
-        Map<String, String> env = System.getenv();
-        if (env.containsKey("USE_MOJANG_AUTH")) {
-            return new Auth.Online();
-        }
-        if (env.containsKey("PROXY_AUTH_TYPE")) {
-            String type = env.get("PROXY_AUTH_TYPE").toUpperCase();
-            if (type.equals("VELOCITY")) {
-                if (!env.containsKey("VELOCITY_AUTH_SECRET")) {
-                    throw new IllegalStateException("VELOCITY_AUTH_SECRET environment variable is required for VELOCITY proxy authentication.");
-                }
-
-                String velocitySecret = env.get("VELOCITY_AUTH_SECRET");
-                return new Auth.Velocity(velocitySecret);
+            ServerProcess sp = MinecraftServer.process();
+            if (sp == null) {
+                logger.error("Uncaught exception during server startup in process", e);
+                return;
             }
-            if (type.equals("BUNGEE_GUARD")) {
-                if (!env.containsKey("BUNGEE_GUARD_AUTH_TOKENS")) {
-                    throw new IllegalStateException("BUNGEE_GUARD_AUTH_TOKENS environment variable is required for BUNGEE_GUARD proxy authentication.");
-                }
-
-                String tokenList = env.get("BUNGEE_GUARD_AUTH_TOKENS");
-                Set<String> tokens = tokenList != null ? Set.of(tokenList.split(",")) : Set.of();
-                return new Auth.Bungee(tokens);
+            ExceptionManager em = MinecraftServer.getExceptionManager();
+            if (em == null) {
+                logger.error("Uncaught exception during server startup", e);
+                return;
             }
-        }
 
-        return new Auth.Offline();
+            em.handleException(e);
+        }
     }
 }
