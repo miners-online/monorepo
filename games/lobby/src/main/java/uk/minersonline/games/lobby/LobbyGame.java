@@ -34,7 +34,6 @@ import net.minestom.server.item.Material;
 import net.minestom.server.tag.Tag;
 import net.minestom.server.world.DimensionType;
 import uk.minersonline.games.game_materials.InstanceLock;
-import uk.minersonline.games.game_materials.ProxyUtils;
 import uk.minersonline.games.game_materials.RemotePlayerData;
 import uk.minersonline.games.game_materials.WorldID;
 import uk.minersonline.games.server_bootstrap.game.Game;
