@@ -1,5 +1,9 @@
 [versions]
 minestom = "2026.01.08-1.21.11"
+velocity = "3.5.0-SNAPSHOT"
+amqp-client = "5.16.0"
 
 [libraries]
 minestom = { group = "net.minestom", name = "minestom", version.ref = "minestom" }
+velocity = { group = "com.velocitypowered", name = "velocity-api", version.ref = "velocity" }
+amqp-client = { group = "com.rabbitmq", name = "amqp-client", version.ref = "amqp-client" }
