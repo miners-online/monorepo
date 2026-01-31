@@ -13,6 +13,7 @@ dependencies {
     implementation("dev.hollowcube:schem:2.0.1")
     implementation(project(":game-materials"))
     implementation(project(":server-bootstrap"))
+    implementation(project(":message-exchange"))
 }
 
 tasks.test {

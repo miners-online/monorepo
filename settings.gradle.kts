@@ -2,6 +2,8 @@ rootProject.name = "monorepo"
 
 include(":game-materials")
 project(":game-materials").projectDir = file("./packages/game-materials")
+include(":message-exchange")
+project(":message-exchange").projectDir = file("./packages/message-exchange")
 include(":proxy-core")
 project(":proxy-core").projectDir = file("./packages/proxy-core")
 include(":server-bootstrap")

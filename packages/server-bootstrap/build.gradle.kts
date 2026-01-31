@@ -14,6 +14,9 @@ dependencies {
     implementation("org.tinylog:tinylog-impl:2.8.0-M1")
     implementation("org.slf4j:slf4j-api:2.0.17")
     implementation("io.github.classgraph:classgraph:4.8.181")
+
+    implementation(libs.amqp.client)
+    implementation(project(":message-exchange"))
 }
 
 tasks.test {

@@ -112,9 +112,10 @@ public class LobbyGame extends Game {
     public void onStart() {
         geh.addListener(PlayerEntityInteractEvent.class, event -> {
             Entity entity = event.getTarget();
+            Player player = event.getPlayer();
             if (entity.hasTag(LobbySignHandler.NPC_TAG)) {
                 String serverName = entity.getTag(LobbySignHandler.NPC_TAG);
-                ProxyUtils.transfer(event.getPlayer(), serverName);
+                this.getProxyMessageClient().sendTransfer(player.getUuid(), serverName);
             }
         });
 
