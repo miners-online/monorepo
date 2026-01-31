@@ -4,12 +4,15 @@ import net.hollowcube.schem.Schematic;
 import net.hollowcube.schem.reader.SchematicReader;
 import net.hollowcube.schem.util.Rotation;
 import net.kyori.adventure.key.Key;
+import net.kyori.adventure.nbt.BinaryTag;
+import net.kyori.adventure.nbt.CompoundBinaryTag;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.ChunkRange;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.dialog.Dialog;
+import net.minestom.server.dialog.DialogAction;
 import net.minestom.server.dialog.DialogActionButton;
 import net.minestom.server.dialog.DialogAfterAction;
 import net.minestom.server.dialog.DialogMetadata;
@@ -19,6 +22,7 @@ import net.minestom.server.entity.Player;
 import net.minestom.server.entity.PlayerHand;
 import net.minestom.server.event.GlobalEventHandler;
 import net.minestom.server.event.player.AsyncPlayerConfigurationEvent;
+import net.minestom.server.event.player.PlayerCustomClickEvent;
 import net.minestom.server.event.player.PlayerEntityInteractEvent;
 import net.minestom.server.event.player.PlayerPreEatEvent;
 import net.minestom.server.event.player.PlayerSpawnEvent;
@@ -37,13 +41,17 @@ import net.minestom.server.world.DimensionType;
 import uk.minersonline.games.game_materials.InstanceLock;
 import uk.minersonline.games.game_materials.RemotePlayerData;
 import uk.minersonline.games.game_materials.WorldID;
+import uk.minersonline.games.message_exchange.proxy.ServerInfo;
 import uk.minersonline.games.server_bootstrap.game.Game;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -57,6 +65,7 @@ public class LobbyGame extends Game {
     private InstanceLock instanceLock;
     private LobbySignHandler lobbySignHandler;
     private int worldId;
+    private final Map<String, ServerInfo> serverInfoCache = new ConcurrentHashMap<>();
 
     @Override
     public void onInit() {
@@ -106,6 +115,25 @@ public class LobbyGame extends Game {
 
             LightingChunk.relight(instance, instance.getChunks());
         });
+
+        MinecraftServer.getSchedulerManager().buildTask(() -> {
+            this.getProxyMessageClient().requestServerList().thenAccept(servers -> {
+                serverInfoCache.clear();
+                serverInfoCache.putAll(servers);
+            }).exceptionally(ex -> {
+                return null;
+            });
+
+            // Update all NPCs
+            instance.getEntities().stream()
+                .filter(e -> e instanceof LobbyNPC)
+                .map(e -> (LobbyNPC) e)
+                .forEach(npc -> {
+                    String serverName = npc.getTag(LobbyNPC.NPC_TAG);
+                    ServerInfo info = serverInfoCache.get(serverName);
+                    npc.refresh(info);
+                });
+        }).repeat(Duration.ofSeconds(2)).schedule();
     }
 
     @Override
@@ -118,8 +146,8 @@ public class LobbyGame extends Game {
                 return;
             }
 
-            if (entity.hasTag(LobbySignHandler.NPC_TAG)) {
-                String serverName = entity.getTag(LobbySignHandler.NPC_TAG);
+            if (entity.hasTag(LobbyNPC.NPC_TAG)) {
+                String serverName = entity.getTag(LobbyNPC.NPC_TAG);
                 this.getProxyMessageClient().sendTransfer(player.getUuid(), serverName);
             }
         });
@@ -154,20 +182,33 @@ public class LobbyGame extends Game {
             if (item.hasTag(SERVER_SELECTOR_TAG)) {
                 event.setCancelled(true);
 
-                // player.sendMessage(Component.text("World ID: " + worldId).color(NamedTextColor.GRAY));
-
-                List<String> servers = List.of("survival", "creative", "modded-creative");
+                List<String> servers = new ArrayList<>(serverInfoCache.keySet());
+                servers.sort(String::compareToIgnoreCase);
                 List<DialogActionButton> inputs = new ArrayList<>();
                 for (String server : servers) {
+                    ServerInfo info = serverInfoCache.get(server);
+
+                    Component statusComponent;
+                    if (info.isAlive()) {
+                        statusComponent = Component.text("\nONLINE\n").color(NamedTextColor.GREEN).append(
+                            Component.text("\nPlayers: " + info.getPlayerCount()).color(NamedTextColor.WHITE)
+                        );
+                    } else {
+                        statusComponent = Component.text("\nOFFLINE").color(NamedTextColor.RED);
+                    }
+
+                    CompoundBinaryTag payload = CompoundBinaryTag.builder()
+                        .putString("server", server)
+                        .build();
+
                     inputs.add(new DialogActionButton(
                         Component.text(server).color(NamedTextColor.YELLOW),
-                        Component.text(server).color(NamedTextColor.YELLOW).append(
-                            Component.text("\nONLINE\n").color(NamedTextColor.GREEN).append(
-                                Component.text("\nPlayers: 3/10").color(NamedTextColor.WHITE)
-                            )
-                        ),
+                        Component.text(server).color(NamedTextColor.YELLOW).append(statusComponent),
                         DialogActionButton.DEFAULT_WIDTH,
-                        null
+                        new DialogAction.Custom(
+                            Key.key("lobby:transfer_to_server"),
+                            payload
+                        )
                     ));
                 }
 
@@ -183,7 +224,7 @@ public class LobbyGame extends Game {
                     ),
                     inputs,
                     new DialogActionButton(Component.text("Close"), null, DialogActionButton.DEFAULT_WIDTH, null),
-                    1 // columns
+                    1 
                 ));
             }
         });
@@ -204,6 +245,18 @@ public class LobbyGame extends Game {
             
             player.getInventory().clear();
             player.getInventory().addItemStack(lobbyCompass);
+        });
+
+        geh.addListener(PlayerCustomClickEvent.class, event -> {
+            Key actionKey = event.getKey();
+            BinaryTag payload = event.getPayload();
+            if (actionKey.equals(Key.key("lobby:transfer_to_server"))) {
+                CompoundBinaryTag data = (CompoundBinaryTag) payload;   
+                if (payload != null && data != null && data.contains("server")) {
+                    String serverName = data.getString("server");
+                    this.getProxyMessageClient().sendTransfer(event.getPlayer().getUuid(), serverName);
+                }
+            }
         });
     }
 
@@ -237,5 +290,9 @@ public class LobbyGame extends Game {
     }
 
     public static record BlockResult(int y, Block block) {
+    }
+
+    public Map<String, ServerInfo> getServerInfoCache() {
+        return serverInfoCache;
     }
 }

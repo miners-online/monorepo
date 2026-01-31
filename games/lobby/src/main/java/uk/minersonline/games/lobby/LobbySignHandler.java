@@ -2,16 +2,8 @@ package uk.minersonline.games.lobby;
 
 import net.kyori.adventure.nbt.CompoundBinaryTag;
 import net.kyori.adventure.nbt.ListBinaryTag;
-import net.kyori.adventure.text.Component;
 import net.minestom.server.MinecraftServer;
-import net.minestom.server.component.DataComponents;
-import net.minestom.server.entity.Entity;
-import net.minestom.server.entity.EntityType;
-import net.minestom.server.entity.PlayerSkin;
-import net.minestom.server.entity.metadata.avatar.MannequinMeta;
 import net.minestom.server.instance.block.Block;
-import net.minestom.server.network.player.ResolvableProfile;
-import net.minestom.server.tag.Tag;
 import net.minestom.server.utils.Direction;
 
 import java.time.Duration;
@@ -20,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
 import uk.minersonline.games.game_materials.blocks.SignBlockHandler;
 
 public class LobbySignHandler extends SignBlockHandler {
-    public static final Tag<String> NPC_TAG = Tag.String("lobby:server_npc");
+
 
     private final LobbyGame lobbyGame;
 
@@ -46,19 +38,9 @@ public class LobbySignHandler extends SignBlockHandler {
             String skinName = messages.getString(2);
             if (skinName.isEmpty()) return;
 
-            Entity npc = new Entity(EntityType.MANNEQUIN);
+            LobbyNPC npc = new LobbyNPC(serverName, skinName);
             npc.setInstance(placement.getInstance(), placement.getBlockPosition().add(0.5, 0, 0.5));
             npc.setView(yawForSign(placement.getBlock()), 0.0f);
-            npc.setNoGravity(true);
-
-            MannequinMeta meta = (MannequinMeta) npc.getEntityMeta();
-            ResolvableProfile profile = new ResolvableProfile(PlayerSkin.fromUsername(skinName));
-            meta.setProfile(profile);
-            meta.setDescription(Component.text(""));
-            meta.setCustomNameVisible(true);
-            npc.set(DataComponents.CUSTOM_NAME, Component.text(serverName));
-
-            npc.setTag(NPC_TAG, serverName);
         }
 
         if (firstLine.equalsIgnoreCase("[spawn-point]")) {
