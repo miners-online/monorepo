@@ -13,7 +13,7 @@ repositories {
 dependencies {
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
-    implementation("net.minestom:minestom:2026.01.08-1.21.11")
+    implementation(libs.minestom)
     implementation("dev.hollowcube:schem:2.0.1")
     implementation(project(":game-materials"))
     implementation(project(":server-bootstrap"))
@@ -28,6 +28,7 @@ tasks.register<JavaExec>("run") {
     description = "Run the Lobby server"
     classpath = sourceSets["main"].runtimeClasspath
     mainClass.set("uk.minersonline.games.server_bootstrap.Main")
+    workingDir = file("${rootProject.projectDir}/games/lobby")
 }
 
 tasks {

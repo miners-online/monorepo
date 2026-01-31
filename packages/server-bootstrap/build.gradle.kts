@@ -12,7 +12,7 @@ repositories {
 dependencies {
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
-    implementation("net.minestom:minestom:2026.01.08-1.21.11")
+    implementation(libs.minestom)
     implementation("org.tinylog:slf4j-tinylog:2.8.0-M1")
     implementation("org.tinylog:tinylog-api:2.8.0-M1")
     implementation("org.tinylog:tinylog-impl:2.8.0-M1")

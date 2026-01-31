@@ -1,0 +1,5 @@
+[versions]
+minestom = "2026.01.08-1.21.11"
+
+[libraries]
+minestom = { group = "net.minestom", name = "minestom", version.ref = "minestom" }

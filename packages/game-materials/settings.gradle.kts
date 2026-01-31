@@ -1,2 +1,2 @@
-rootProject.name = "default-block-handlers"
+rootProject.name = "game-materials"
 

@@ -47,7 +47,6 @@ jobs:
             gradle-${{ runner.os }}-
 
       - name: Build ${{ matrix.project }}
-        working-directory: ${{ matrix.work_path }}
         run: |
           chmod +x ./gradlew
           ./gradlew build --no-daemon
