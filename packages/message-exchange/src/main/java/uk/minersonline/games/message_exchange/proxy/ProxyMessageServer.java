@@ -4,12 +4,17 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.rabbitmq.client.*;
+
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+
 import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import static uk.minersonline.games.message_exchange.MessageCommon.QUEUE_NAME;
 
@@ -117,7 +122,16 @@ public class ProxyMessageServer implements AutoCloseable {
 
         try {
             UUID uuid = UUID.fromString(uuidStr);
-            server.transferPlayerToServer(uuid, serverName);
+            server.sendPlayerMessage(uuid, Component.text("Transferring to " + serverName + "...").color(NamedTextColor.YELLOW));
+            CompletableFuture<Boolean> result = server.transferPlayerToServer(uuid, serverName);
+            result.thenAccept(success -> {
+                if (success) {
+                    logger.info("Player {} transferred to server '{}'", uuid, serverName);
+                } else {
+                    server.sendPlayerMessage(uuid, Component.text("Transfer to " + serverName + " failed.").color(NamedTextColor.RED));
+                    logger.warn("Failed to transfer player {} to server '{}'", uuid, serverName);
+                }
+            });
         } catch (IllegalArgumentException e) {
             logger.warn("Invalid UUID in transfer request: {}", uuidStr);
         }

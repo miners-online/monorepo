@@ -8,6 +8,7 @@ import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
 
+import net.kyori.adventure.text.Component;
 import uk.minersonline.games.message_exchange.MessageCommon;
 import uk.minersonline.games.message_exchange.proxy.ProxyHooks;
 import uk.minersonline.games.message_exchange.proxy.ProxyMessageServer;
@@ -17,6 +18,7 @@ import com.velocitypowered.api.event.Subscribe;
 import java.nio.file.Path;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 import org.slf4j.Logger;
 
@@ -76,27 +78,35 @@ public class MinersOnlineProxyCore implements ProxyHooks {
     }
 
     @Override
-    public void transferPlayerToServer(UUID uuid, String serverName) {
+    public CompletableFuture<Boolean> transferPlayerToServer(UUID uuid, String serverName) {
+        CompletableFuture<Boolean> resultFuture = new CompletableFuture<>();
         Optional<Player>  optPlayer = server.getPlayer(uuid);
         if (optPlayer.isEmpty()) {
-            logger.warn("Player with UUID {} not found for transfer to server '{}'", uuid, serverName);
-            return;
+            resultFuture.complete(false);
+            return resultFuture;
         }
 
         Player player = optPlayer.get();
         Optional<RegisteredServer> optServer = server.getServer(serverName);
         if (optServer.isEmpty()) {
-            logger.warn("Target server '{}' not found for player UUID {}", serverName, uuid);
-            return;
+            resultFuture.complete(false);
+            return resultFuture;
         }
 
         RegisteredServer targetServer = optServer.get();
         player.createConnectionRequest(targetServer).connect().thenAccept(result -> {
-            if (result.isSuccessful()) {
-                logger.info("Player {} transferred to server '{}'", player.getUsername(), serverName);
-            } else {
-                logger.warn("Failed to transfer player {} to server '{}'", player.getUsername(), serverName);
-            }
+            resultFuture.complete(result.isSuccessful());
         });
+
+        return resultFuture;
+    }
+
+    @Override
+    public void sendPlayerMessage(UUID uuid, Component message) {
+        Optional<Player> optPlayer = server.getPlayer(uuid);
+        if (optPlayer.isPresent()) {
+            Player player = optPlayer.get();
+            player.sendMessage(message);
+        }
     }
 }

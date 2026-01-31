@@ -11,6 +11,7 @@ dependencies {
 
     implementation(libs.amqp.client)
     implementation("com.google.code.gson:gson:2.13.2")
+    implementation("net.kyori:adventure-api:4.26.1")
 }
 
 tasks.test {

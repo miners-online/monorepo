@@ -16,6 +16,7 @@ import net.minestom.server.dialog.DialogMetadata;
 import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.GameMode;
 import net.minestom.server.entity.Player;
+import net.minestom.server.entity.PlayerHand;
 import net.minestom.server.event.GlobalEventHandler;
 import net.minestom.server.event.player.AsyncPlayerConfigurationEvent;
 import net.minestom.server.event.player.PlayerEntityInteractEvent;
@@ -112,6 +113,11 @@ public class LobbyGame extends Game {
         geh.addListener(PlayerEntityInteractEvent.class, event -> {
             Entity entity = event.getTarget();
             Player player = event.getPlayer();
+
+            if (event.getHand() != PlayerHand.MAIN) {
+                return;
+            }
+
             if (entity.hasTag(LobbySignHandler.NPC_TAG)) {
                 String serverName = entity.getTag(LobbySignHandler.NPC_TAG);
                 this.getProxyMessageClient().sendTransfer(player.getUuid(), serverName);
