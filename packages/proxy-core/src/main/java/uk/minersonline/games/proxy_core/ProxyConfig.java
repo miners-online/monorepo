@@ -9,11 +9,6 @@ import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.jetbrains.annotations.Nullable;
-
-import com.rabbitmq.client.ConnectionFactory;
-import com.rabbitmq.client.Connection;
-
 public class ProxyConfig {
     private static final Pattern ENV_PATTERN = Pattern.compile("\\$\\{([A-Z0-9_]+)}");
 

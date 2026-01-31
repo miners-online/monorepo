@@ -1,6 +1,7 @@
 package uk.minersonline.games.message_exchange.proxy;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.rabbitmq.client.*;
@@ -15,7 +16,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
 import static uk.minersonline.games.message_exchange.MessageCommon.QUEUE_NAME;
 
 public class ProxyMessageServer implements AutoCloseable {
@@ -25,7 +25,7 @@ public class ProxyMessageServer implements AutoCloseable {
     private final Gson gson = new Gson();
 
     private Channel channel;
-    private final Map<String, Consumer<JsonObject>> handlers;
+    private final Map<String, java.util.function.BiConsumer<JsonObject, AMQP.BasicProperties>> handlers;
 
     public ProxyMessageServer(Connection connection, ProxyHooks server, Logger logger) {
         this.connection = connection;
@@ -33,7 +33,8 @@ public class ProxyMessageServer implements AutoCloseable {
         this.logger = logger;
 
         this.handlers = Map.of(
-            "transfer", this::handleTransfer
+            "transfer", this::handleTransfer,
+            "server-list", this::handleServerList
         );
     }
 
@@ -45,6 +46,7 @@ public class ProxyMessageServer implements AutoCloseable {
             DeliverCallback deliver = (tag, delivery) -> {
                 long deliveryTag = delivery.getEnvelope().getDeliveryTag();
                 String body = new String(delivery.getBody(), StandardCharsets.UTF_8);
+                AMQP.BasicProperties props = delivery.getProperties();
 
                 try {
                     JsonElement el = gson.fromJson(body, JsonElement.class);
@@ -60,13 +62,13 @@ public class ProxyMessageServer implements AutoCloseable {
                         return;
                     }
 
-                    Consumer<JsonObject> handler = handlers.get(type.toLowerCase());
+                    var handler = handlers.get(type.toLowerCase());
                     if (handler == null) {
                         nack(deliveryTag, "No handler for type: " + type, body);
                         return;
                     }
 
-                    handler.accept(obj);
+                    handler.accept(obj, props);
                     channel.basicAck(deliveryTag, false);
 
                 } catch (Exception e) {
@@ -111,7 +113,7 @@ public class ProxyMessageServer implements AutoCloseable {
 
     // --- Handlers ---
 
-    private void handleTransfer(JsonObject obj) {
+    private void handleTransfer(JsonObject obj, AMQP.BasicProperties props) {
         String serverName = getString(obj, "server");
         String uuidStr = getString(obj, "playerUuid");
 
@@ -134,6 +136,46 @@ public class ProxyMessageServer implements AutoCloseable {
             });
         } catch (IllegalArgumentException e) {
             logger.warn("Invalid UUID in transfer request: {}", uuidStr);
+        }
+    }
+
+    
+
+    private void handleServerList(JsonObject obj, AMQP.BasicProperties props) {
+        String replyTo = props == null ? null : props.getReplyTo();
+        String corrId = props == null ? null : props.getCorrelationId();
+        if (replyTo == null || corrId == null) {
+            logger.warn("server-list missing replyTo/correlationId: {}", obj);
+            return;
+        }
+
+        try {
+            CompletableFuture<java.util.Map<String, ServerInfo>> listF = server.listServers();
+            listF.thenAccept(map -> {
+                try {
+                    JsonObject resp = new JsonObject();
+                    resp.addProperty("type", "server-list-response");
+                    JsonArray arr = new JsonArray();
+                    map.forEach((name, info) -> {
+                        JsonObject s = new JsonObject();
+                        s.addProperty("name", name);
+                        s.addProperty("playerCount", info.getPlayerCount());
+                        s.addProperty("alive", info.isAlive());
+                        arr.add(s);
+                    });
+                    resp.add("servers", arr);
+
+                    AMQP.BasicProperties outProps = new AMQP.BasicProperties.Builder()
+                        .correlationId(corrId)
+                        .build();
+
+                    channel.basicPublish("", replyTo, outProps, resp.toString().getBytes(StandardCharsets.UTF_8));
+                } catch (Exception e) {
+                    logger.error("Failed to send server-list response", e);
+                }
+            });
+        } catch (Exception e) {
+            logger.error("Error handling server-list", e);
         }
     }
 }

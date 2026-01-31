@@ -12,13 +12,18 @@ import net.kyori.adventure.text.Component;
 import uk.minersonline.games.message_exchange.MessageCommon;
 import uk.minersonline.games.message_exchange.proxy.ProxyHooks;
 import uk.minersonline.games.message_exchange.proxy.ProxyMessageServer;
+import uk.minersonline.games.message_exchange.proxy.ServerInfo;
 
 import com.velocitypowered.api.event.Subscribe;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.slf4j.Logger;
 
@@ -108,5 +113,31 @@ public class MinersOnlineProxyCore implements ProxyHooks {
             Player player = optPlayer.get();
             player.sendMessage(message);
         }
+    }
+
+    @Override
+    public CompletableFuture<Map<String, ServerInfo>> listServers() {
+        Map<String, ServerInfo> serverInfoMap = new ConcurrentHashMap<>();
+        List<CompletableFuture<?>> futures = new ArrayList<>();
+
+        for (RegisteredServer regServer : server.getAllServers()) {
+            final String serverName = regServer.getServerInfo().getName();
+            final int playerCount = regServer.getPlayersConnected().size();
+
+            CompletableFuture<Void> f = regServer.ping()
+                .thenAccept(ping -> {
+                    boolean alive = ping != null;
+                    serverInfoMap.put(serverName, new ServerInfo(alive, playerCount));
+                })
+                .exceptionally(ex -> {
+                    serverInfoMap.put(serverName, new ServerInfo(false, playerCount));
+                    return null;
+                });
+
+            futures.add(f);
+        }
+
+        return CompletableFuture.allOf(futures.toArray(new CompletableFuture<?>[0]))
+                .thenApply(ignored -> serverInfoMap);
     }
 }
