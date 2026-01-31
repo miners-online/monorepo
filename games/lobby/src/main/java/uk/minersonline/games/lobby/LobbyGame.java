@@ -4,22 +4,34 @@ import net.hollowcube.schem.Schematic;
 import net.hollowcube.schem.reader.SchematicReader;
 import net.hollowcube.schem.util.Rotation;
 import net.kyori.adventure.key.Key;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.ChunkRange;
 import net.minestom.server.coordinate.Pos;
+import net.minestom.server.dialog.Dialog;
+import net.minestom.server.dialog.DialogActionButton;
+import net.minestom.server.dialog.DialogAfterAction;
+import net.minestom.server.dialog.DialogMetadata;
 import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.GameMode;
 import net.minestom.server.entity.Player;
 import net.minestom.server.event.GlobalEventHandler;
 import net.minestom.server.event.player.AsyncPlayerConfigurationEvent;
 import net.minestom.server.event.player.PlayerEntityInteractEvent;
+import net.minestom.server.event.player.PlayerPreEatEvent;
 import net.minestom.server.event.player.PlayerSpawnEvent;
+import net.minestom.server.event.player.PlayerSwapItemEvent;
+import net.minestom.server.event.player.PlayerUseItemEvent;
 import net.minestom.server.instance.Chunk;
 import net.minestom.server.instance.InstanceContainer;
 import net.minestom.server.instance.InstanceManager;
 import net.minestom.server.instance.LightingChunk;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.instance.block.BlockManager;
+import net.minestom.server.item.ItemStack;
+import net.minestom.server.item.Material;
+import net.minestom.server.tag.Tag;
 import net.minestom.server.world.DimensionType;
 import uk.minersonline.games.game_materials.InstanceLock;
 import uk.minersonline.games.game_materials.ProxyUtils;
@@ -30,11 +42,14 @@ import uk.minersonline.games.server_bootstrap.game.Game;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 import org.jetbrains.annotations.Nullable;
 
 public class LobbyGame extends Game {
+    public static final Tag<Boolean> SERVER_SELECTOR_TAG = Tag.Boolean("server_selector");
+
     private GlobalEventHandler geh;
     private Pos spawnPoint;
     private int spawnRadius = 1;
@@ -112,6 +127,61 @@ public class LobbyGame extends Game {
             InstanceLock.lockPlayerItem(player);
         });
 
+        geh.addListener(PlayerPreEatEvent.class, event -> {
+            ItemStack item = event.getItemStack();
+            if (item.hasTag(SERVER_SELECTOR_TAG)) {
+                event.setCancelled(true);
+            }
+        });
+
+        geh.addListener(PlayerSwapItemEvent.class, event -> {
+            ItemStack mainHand = event.getMainHandItem();
+            ItemStack offHand = event.getOffHandItem();
+            if (mainHand.hasTag(SERVER_SELECTOR_TAG) || offHand.hasTag(SERVER_SELECTOR_TAG)) {
+                event.setCancelled(true);
+            }
+        });
+
+        geh.addListener(PlayerUseItemEvent.class, event -> {
+            Player player = event.getPlayer();
+            ItemStack item = event.getItemStack();
+            if (item.hasTag(SERVER_SELECTOR_TAG)) {
+                event.setCancelled(true);
+
+                // player.sendMessage(Component.text("World ID: " + worldId).color(NamedTextColor.GRAY));
+
+                List<String> servers = List.of("survival", "creative", "modded-creative");
+                List<DialogActionButton> inputs = new ArrayList<>();
+                for (String server : servers) {
+                    inputs.add(new DialogActionButton(
+                        Component.text(server).color(NamedTextColor.YELLOW),
+                        Component.text(server).color(NamedTextColor.YELLOW).append(
+                            Component.text("\nONLINE\n").color(NamedTextColor.GREEN).append(
+                                Component.text("\nPlayers: 3/10").color(NamedTextColor.WHITE)
+                            )
+                        ),
+                        DialogActionButton.DEFAULT_WIDTH,
+                        null
+                    ));
+                }
+
+                player.showDialog(new Dialog.MultiAction(
+                    new DialogMetadata(
+                        Component.text("Server Selector").color(NamedTextColor.GOLD), 
+                        Component.text("Servers"), 
+                        true, 
+                        false, 
+                        DialogAfterAction.CLOSE, 
+                        List.of(), 
+                        List.of()
+                    ),
+                    inputs,
+                    new DialogActionButton(Component.text("Close"), null, DialogActionButton.DEFAULT_WIDTH, null),
+                    1 // columns
+                ));
+            }
+        });
+
         geh.addListener(PlayerSpawnEvent.class, event -> {
             // Teleport to a random point within spawn radius
             final Player player = event.getPlayer();
@@ -120,6 +190,14 @@ public class LobbyGame extends Game {
             player.teleport(spawnPoint.add(offsetX, 0, offsetZ));
 
             WorldID.sendWorldId(player, worldId);
+
+            ItemStack lobbyCompass = ItemStack.of(Material.fromKey("minecraft:compass"), 1)
+            .withTag(InstanceLock.ITEM_LOCK_BYPASS_TAG, true)
+            .withTag(SERVER_SELECTOR_TAG, true)
+            .withCustomName(Component.text("Server Selector").color(NamedTextColor.GOLD));
+            
+            player.getInventory().clear();
+            player.getInventory().addItemStack(lobbyCompass);
         });
     }
 
