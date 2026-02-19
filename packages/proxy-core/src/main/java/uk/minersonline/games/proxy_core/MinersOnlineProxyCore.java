@@ -1,12 +1,12 @@
 package uk.minersonline.games.proxy_core;
 
 import com.google.inject.Inject;
-import com.rabbitmq.client.Connection;
 import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
+import io.lettuce.core.api.StatefulRedisConnection;
 
 import net.kyori.adventure.text.Component;
 import uk.minersonline.games.message_exchange.MessageCommon;
@@ -38,9 +38,9 @@ public class MinersOnlineProxyCore implements ProxyHooks {
     private final ProxyServer server;
     private final Logger logger;
 
-    // RabbitMQ related
+    // Redis related
     private final ProxyConfig proxyConfig;
-    private Connection rabbitConnection;
+    private StatefulRedisConnection<String, String> redisConnection;
     private ProxyMessageServer messageServer;
 
     @Inject
@@ -51,13 +51,13 @@ public class MinersOnlineProxyCore implements ProxyHooks {
         Path configPath = dataDirectory.resolve("proxy.properties");
         this.proxyConfig = new ProxyConfig(configPath.toString());
 
-        this.rabbitConnection = MessageCommon.createRabbitMQConnection(this.proxyConfig.getProperties());
-        if (this.rabbitConnection != null) {
-            this.logger.info("Connected to RabbitMQ, starting listener...");
-            this.messageServer = new ProxyMessageServer(this.rabbitConnection, this, this.logger);
+        this.redisConnection = MessageCommon.createRedisConnection(this.proxyConfig.getProperties());
+        if (this.redisConnection != null) {
+            this.logger.info("Connected to Redis, starting listener...");
+            this.messageServer = new ProxyMessageServer(this.redisConnection, this, this.logger);
             this.messageServer.start();
         } else {
-            this.logger.warn("RabbitMQ connection could not be established; plugin will not listen for proxy requests.");
+            this.logger.warn("Redis connection could not be established; plugin will not listen for proxy requests.");
         }
     }
 
@@ -67,15 +67,15 @@ public class MinersOnlineProxyCore implements ProxyHooks {
             try {
                 this.messageServer.close();
             } catch (Exception e) {
-                this.logger.error("Error while closing RabbitMQ listener", e);
+                this.logger.error("Error while closing Redis listener", e);
             }
         }
 
-        if (this.rabbitConnection != null) {
+        if (this.redisConnection != null) {
             try {
-                this.rabbitConnection.close();
+                this.redisConnection.close();
             } catch (Exception e) {
-                this.logger.error("Error while closing RabbitMQ connection", e);
+                this.logger.error("Error while closing Redis connection", e);
             }
         }
 

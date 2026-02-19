@@ -7,14 +7,14 @@ import uk.minersonline.games.server_bootstrap.feature.Feature;
 
 import java.util.List;
 
-import com.rabbitmq.client.Connection;
+import io.lettuce.core.api.StatefulRedisConnection;
 
 public abstract class Game {
     private List<Feature> features;
     private GameConfig config;
     private ServerConfig serverConfig;
 
-    private Connection rabbitConnection;
+    private StatefulRedisConnection<String, String> redisConnection;
     private ProxyMessageClient proxyMessageClient;
 
     public void init(List<Feature> featuresToLoad, GameConfig config, ServerConfig serverConfig) {
@@ -28,12 +28,12 @@ public abstract class Game {
             }
         }
 
-        rabbitConnection = MessageCommon.createRabbitMQConnection(serverConfig.getProperties());
-        if (rabbitConnection != null) {
+        redisConnection = MessageCommon.createRedisConnection(serverConfig.getProperties());
+        if (redisConnection != null) {
             try {
-                proxyMessageClient = new ProxyMessageClient(rabbitConnection);
+                proxyMessageClient = new ProxyMessageClient(redisConnection);
             } catch (Exception e) {
-                rabbitConnection = null;
+                redisConnection = null;
             }
         }
 

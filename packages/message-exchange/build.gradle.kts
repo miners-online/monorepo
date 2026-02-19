@@ -9,7 +9,7 @@ dependencies {
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
 
-    implementation(libs.amqp.client)
+    implementation(libs.lettuce)
     implementation("com.google.code.gson:gson:2.13.2")
     implementation("net.kyori:adventure-api:4.26.1")
 }

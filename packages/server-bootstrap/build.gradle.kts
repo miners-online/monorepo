@@ -15,7 +15,7 @@ dependencies {
     implementation("org.slf4j:slf4j-api:2.0.17")
     implementation("io.github.classgraph:classgraph:4.8.181")
 
-    implementation(libs.amqp.client)
+    implementation(libs.lettuce)
     implementation(project(":message-exchange"))
 }
 

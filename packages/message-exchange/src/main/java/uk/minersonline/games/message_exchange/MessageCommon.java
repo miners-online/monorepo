@@ -2,17 +2,20 @@ package uk.minersonline.games.message_exchange;
 
 import java.util.Properties;
 
-import com.rabbitmq.client.Connection;
-import com.rabbitmq.client.ConnectionFactory;
+import io.lettuce.core.RedisClient;
+import io.lettuce.core.RedisURI;
+import io.lettuce.core.api.StatefulRedisConnection;
 
 public class MessageCommon {
     public static final String QUEUE_NAME = "minersonline.messages";
+    public static final String REQUEST_STREAM = QUEUE_NAME + ".requests";
+    public static final String RESPONSE_STREAM_PREFIX = QUEUE_NAME + ".responses";
 
-    public static Connection createRabbitMQConnection(Properties props) {
-        String host = props.getProperty("rabbitmq.host");
-        String portStr = props.getProperty("rabbitmq.port");
-        String username = props.getProperty("rabbitmq.username");
-        String password = props.getProperty("rabbitmq.password");
+    public static StatefulRedisConnection<String, String> createRedisConnection(Properties props) {
+        String host = props.getProperty("redis.host");
+        String portStr = props.getProperty("redis.port");
+        String username = props.getProperty("redis.username");
+        String password = props.getProperty("redis.password");
 
         if (host != null) host = host.trim();
         if (portStr != null) portStr = portStr.trim();
@@ -36,14 +39,16 @@ public class MessageCommon {
             return null;
         }
 
-        ConnectionFactory factory = new ConnectionFactory();
-        factory.setHost(host);
-        factory.setPort(port);
-        factory.setUsername(username);
-        factory.setPassword(password);
+        RedisURI.Builder builder = RedisURI.builder().withHost(host).withPort(port);
+        if (!username.isEmpty()) {
+            builder.withAuthentication(username, password.toCharArray());
+        } else {
+            builder.withPassword(password.toCharArray());
+        }
 
         try {
-            return factory.newConnection();
+            RedisClient client = RedisClient.create(builder.build());
+            return client.connect();
         } catch (Exception e) {
             return null;
         }

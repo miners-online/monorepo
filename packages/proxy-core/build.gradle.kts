@@ -13,7 +13,7 @@ dependencies {
     compileOnly(libs.velocity)
     annotationProcessor(libs.velocity)
 
-    implementation(libs.amqp.client)
+    implementation(libs.lettuce)
     implementation(project(":message-exchange"))
 }
 
