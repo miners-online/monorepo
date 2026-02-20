@@ -6,6 +6,7 @@ import com.google.gson.JsonObject;
 import io.lettuce.core.Limit;
 import io.lettuce.core.Range;
 import io.lettuce.core.StreamMessage;
+import io.lettuce.core.XAddArgs;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.sync.RedisCommands;
 import net.kyori.adventure.text.Component;
@@ -21,7 +22,9 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
 
 import static uk.minersonline.games.message_exchange.MessageCommon.REQUEST_STREAM;
+import static uk.minersonline.games.message_exchange.MessageCommon.RESPONSE_STREAM_MAX_LEN;
 import static uk.minersonline.games.message_exchange.MessageCommon.RESPONSE_STREAM_PREFIX;
+import static uk.minersonline.games.message_exchange.MessageCommon.RESPONSE_STREAM_TTL_SECONDS;
 
 public class ProxyMessageServer implements AutoCloseable {
     private final StatefulRedisConnection<String, String> redisConnection;
@@ -97,25 +100,30 @@ public class ProxyMessageServer implements AutoCloseable {
                         continue;
                     }
                     advanced = true;
-                    lastSeenId = message.getId();
+                    String messageId = message.getId();
+                    lastSeenId = messageId;
                     Map<String, String> body = message.getBody();
                     String type = body.get("type");
 
                     if (type == null) {
                         logger.warn("Missing type for stream message {}", message.getId());
+                        deleteRequestMessage(messageId);
                         continue;
                     }
 
                     BiConsumer<String, Map<String, String>> handler = handlers.get(type.toLowerCase());
                     if (handler == null) {
                         logger.warn("No handler for type '{}' in message {}", type, message.getId());
+                        deleteRequestMessage(messageId);
                         continue;
                     }
 
                     try {
-                        handler.accept(message.getId(), body);
+                        handler.accept(messageId, body);
                     } catch (Exception e) {
                         logger.error("Message processing failure for stream message {}", message.getId(), e);
+                    } finally {
+                        deleteRequestMessage(messageId);
                     }
                 }
 
@@ -133,6 +141,14 @@ public class ProxyMessageServer implements AutoCloseable {
                     logger.error("Failed to read from Redis stream '{}'", REQUEST_STREAM, e);
                 }
             }
+        }
+    }
+
+    private void deleteRequestMessage(String messageId) {
+        try {
+            commands.xdel(REQUEST_STREAM, messageId);
+        } catch (Exception e) {
+            logger.warn("Failed to delete consumed request message {}", messageId, e);
         }
     }
 
@@ -202,7 +218,12 @@ public class ProxyMessageServer implements AutoCloseable {
                     response.put("type", "server-list-response");
                     response.put("servers", gson.toJson(arr));
                     String responseStream = RESPONSE_STREAM_PREFIX + "." + requestId;
-                    commands.xadd(responseStream, response);
+                    commands.xadd(
+                        responseStream,
+                        XAddArgs.Builder.maxlen(RESPONSE_STREAM_MAX_LEN).approximateTrimming(),
+                        response
+                    );
+                    commands.expire(responseStream, RESPONSE_STREAM_TTL_SECONDS);
                 } catch (Exception e) {
                     logger.error("Failed to send server-list response", e);
                 }

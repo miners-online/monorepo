@@ -10,6 +10,10 @@ public class MessageCommon {
     public static final String QUEUE_NAME = "minersonline.messages";
     public static final String REQUEST_STREAM = QUEUE_NAME + ".requests";
     public static final String RESPONSE_STREAM_PREFIX = QUEUE_NAME + ".responses";
+    public static final long REQUEST_STREAM_MAX_LEN = 10_000;
+    public static final long REQUEST_STREAM_TTL_SECONDS = 30;
+    public static final long RESPONSE_STREAM_MAX_LEN = 1;
+    public static final long RESPONSE_STREAM_TTL_SECONDS = 30;
 
     public static StatefulRedisConnection<String, String> createRedisConnection(Properties props) {
         String host = props.getProperty("redis.host");

@@ -6,6 +6,7 @@ import com.google.gson.JsonObject;
 import io.lettuce.core.Limit;
 import io.lettuce.core.Range;
 import io.lettuce.core.StreamMessage;
+import io.lettuce.core.XAddArgs;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.sync.RedisCommands;
 import uk.minersonline.games.message_exchange.proxy.ServerInfo;
@@ -18,6 +19,8 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 import static uk.minersonline.games.message_exchange.MessageCommon.REQUEST_STREAM;
+import static uk.minersonline.games.message_exchange.MessageCommon.REQUEST_STREAM_MAX_LEN;
+import static uk.minersonline.games.message_exchange.MessageCommon.REQUEST_STREAM_TTL_SECONDS;
 import static uk.minersonline.games.message_exchange.MessageCommon.RESPONSE_STREAM_PREFIX;
 
 public final class ProxyMessageClient implements AutoCloseable {
@@ -50,7 +53,12 @@ public final class ProxyMessageClient implements AutoCloseable {
         msg.put("server", targetServer);
 
         try {
-            commands.xadd(REQUEST_STREAM, msg);
+            commands.xadd(
+                REQUEST_STREAM,
+                XAddArgs.Builder.maxlen(REQUEST_STREAM_MAX_LEN).approximateTrimming(),
+                msg
+            );
+            commands.expire(REQUEST_STREAM, REQUEST_STREAM_TTL_SECONDS);
         } catch (Exception ignored) {
         }
     }
@@ -62,7 +70,12 @@ public final class ProxyMessageClient implements AutoCloseable {
             try {
                 Map<String, String> msg = new HashMap<>();
                 msg.put("type", "server-list");
-                String requestId = commands.xadd(REQUEST_STREAM, msg);
+                String requestId = commands.xadd(
+                    REQUEST_STREAM,
+                    XAddArgs.Builder.maxlen(REQUEST_STREAM_MAX_LEN).approximateTrimming(),
+                    msg
+                );
+                commands.expire(REQUEST_STREAM, REQUEST_STREAM_TTL_SECONDS);
                 if (requestId == null || requestId.isBlank()) {
                     throw new RuntimeException("Failed to publish server-list request");
                 }
