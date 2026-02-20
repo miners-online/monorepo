@@ -3,8 +3,12 @@ package uk.minersonline.games.message_exchange.client;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import io.lettuce.core.KeyScanCursor;
 import io.lettuce.core.Limit;
 import io.lettuce.core.Range;
+import io.lettuce.core.RedisCommandExecutionException;
+import io.lettuce.core.ScanArgs;
+import io.lettuce.core.ScanCursor;
 import io.lettuce.core.StreamMessage;
 import io.lettuce.core.XAddArgs;
 import io.lettuce.core.api.StatefulRedisConnection;
@@ -27,6 +31,8 @@ public final class ProxyMessageClient implements AutoCloseable {
     private final StatefulRedisConnection<String, String> redisConnection;
     private final RedisCommands<String, String> commands;
     private final Gson gson = new Gson();
+    private volatile long lastPurgeEpochMs = 0L;
+    private static final long PURGE_COOLDOWN_MS = 5_000L;
 
     public ProxyMessageClient(StatefulRedisConnection<String, String> connection) throws Exception {
         if (connection == null) {
@@ -53,12 +59,7 @@ public final class ProxyMessageClient implements AutoCloseable {
         msg.put("server", targetServer);
 
         try {
-            commands.xadd(
-                REQUEST_STREAM,
-                XAddArgs.Builder.maxlen(REQUEST_STREAM_MAX_LEN).approximateTrimming(),
-                msg
-            );
-            commands.expire(REQUEST_STREAM, REQUEST_STREAM_TTL_SECONDS);
+            publishRequest(msg);
         } catch (Exception ignored) {
         }
     }
@@ -70,12 +71,7 @@ public final class ProxyMessageClient implements AutoCloseable {
             try {
                 Map<String, String> msg = new HashMap<>();
                 msg.put("type", "server-list");
-                String requestId = commands.xadd(
-                    REQUEST_STREAM,
-                    XAddArgs.Builder.maxlen(REQUEST_STREAM_MAX_LEN).approximateTrimming(),
-                    msg
-                );
-                commands.expire(REQUEST_STREAM, REQUEST_STREAM_TTL_SECONDS);
+                String requestId = publishRequest(msg);
                 if (requestId == null || requestId.isBlank()) {
                     throw new RuntimeException("Failed to publish server-list request");
                 }
@@ -150,5 +146,70 @@ public final class ProxyMessageClient implements AutoCloseable {
             }
         });
         return future;
+    }
+
+    private String publishRequest(Map<String, String> msg) {
+        try {
+            String id = commands.xadd(
+                REQUEST_STREAM,
+                XAddArgs.Builder.maxlen(REQUEST_STREAM_MAX_LEN).approximateTrimming(),
+                msg
+            );
+            commands.expire(REQUEST_STREAM, REQUEST_STREAM_TTL_SECONDS);
+            return id;
+        } catch (Exception e) {
+            if (isRedisOom(e)) {
+                purgeTransportKeysOnOom();
+                String id = commands.xadd(
+                    REQUEST_STREAM,
+                    XAddArgs.Builder.maxlen(REQUEST_STREAM_MAX_LEN).approximateTrimming(),
+                    msg
+                );
+                commands.expire(REQUEST_STREAM, REQUEST_STREAM_TTL_SECONDS);
+                return id;
+            }
+            throw new RuntimeException("Failed to publish request", e);
+        }
+    }
+
+    private boolean isRedisOom(Throwable t) {
+        Throwable cur = t;
+        while (cur != null) {
+            if (cur instanceof RedisCommandExecutionException) {
+                String msg = cur.getMessage();
+                if (msg != null && msg.contains("OOM command not allowed")) {
+                    return true;
+                }
+            }
+            cur = cur.getCause();
+        }
+        return false;
+    }
+
+    private void purgeTransportKeysOnOom() {
+        long now = System.currentTimeMillis();
+        if (now - lastPurgeEpochMs < PURGE_COOLDOWN_MS) {
+            return;
+        }
+        synchronized (this) {
+            long again = System.currentTimeMillis();
+            if (again - lastPurgeEpochMs < PURGE_COOLDOWN_MS) {
+                return;
+            }
+
+            commands.del(REQUEST_STREAM);
+            ScanArgs scanArgs = ScanArgs.Builder.matches(RESPONSE_STREAM_PREFIX + ".*").limit(500);
+            ScanCursor cursor = ScanCursor.INITIAL;
+            do {
+                KeyScanCursor<String> scanResult = commands.scan(cursor, scanArgs);
+                List<String> keys = scanResult.getKeys();
+                if (keys != null && !keys.isEmpty()) {
+                    commands.del(keys.toArray(new String[0]));
+                }
+                cursor = scanResult;
+            } while (!cursor.isFinished());
+
+            lastPurgeEpochMs = again;
+        }
     }
 }

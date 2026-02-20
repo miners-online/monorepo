@@ -4,7 +4,11 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.lettuce.core.Limit;
+import io.lettuce.core.KeyScanCursor;
 import io.lettuce.core.Range;
+import io.lettuce.core.ScanArgs;
+import io.lettuce.core.ScanCursor;
+import io.lettuce.core.RedisCommandExecutionException;
 import io.lettuce.core.StreamMessage;
 import io.lettuce.core.XAddArgs;
 import io.lettuce.core.api.StatefulRedisConnection;
@@ -37,6 +41,8 @@ public class ProxyMessageServer implements AutoCloseable {
     private volatile boolean running;
     private Thread consumerThread;
     private String lastSeenId = "0-0";
+    private volatile long lastPurgeEpochMs = 0L;
+    private static final long PURGE_COOLDOWN_MS = 5_000L;
 
     public ProxyMessageServer(StatefulRedisConnection<String, String> redisConnection, ProxyHooks server, Logger logger) {
         this.redisConnection = redisConnection;
@@ -55,12 +61,107 @@ public class ProxyMessageServer implements AutoCloseable {
             return;
         }
 
+        if (isRedisAtCapacity()) {
+            logger.warn("Redis is at capacity; purging message-exchange transport keys.");
+            purgeTransportKeysOnStartup();
+        }
         initializeCursor();
         running = true;
         consumerThread = new Thread(this::consumeLoop, "proxy-message-server");
         consumerThread.setDaemon(true);
         consumerThread.start();
         logger.info("ProxyMessageServer listening on stream '{}'", REQUEST_STREAM);
+    }
+
+    private boolean isRedisAtCapacity() {
+        try {
+            String memoryInfo = commands.info("memory");
+            if (memoryInfo == null || memoryInfo.isBlank()) {
+                return false;
+            }
+
+            long usedMemory = -1L;
+            long maxMemory = -1L;
+            String[] lines = memoryInfo.split("\\R");
+            for (String line : lines) {
+                if (line.startsWith("used_memory:")) {
+                    usedMemory = parseInfoLong(line);
+                } else if (line.startsWith("maxmemory:")) {
+                    maxMemory = parseInfoLong(line);
+                }
+            }
+
+            // maxmemory <= 0 means no memory cap configured.
+            return maxMemory > 0 && usedMemory >= maxMemory;
+        } catch (Exception e) {
+            logger.warn("Failed to inspect Redis memory usage; skipping startup purge check.", e);
+            return false;
+        }
+    }
+
+    private long parseInfoLong(String infoLine) {
+        int sep = infoLine.indexOf(':');
+        if (sep < 0 || sep + 1 >= infoLine.length()) {
+            return -1L;
+        }
+        try {
+            return Long.parseLong(infoLine.substring(sep + 1).trim());
+        } catch (NumberFormatException ignored) {
+            return -1L;
+        }
+    }
+
+    private void purgeTransportKeysOnStartup() {
+        try {
+            commands.del(REQUEST_STREAM);
+        } catch (Exception e) {
+            logger.warn("Failed to purge request stream '{}'", REQUEST_STREAM, e);
+        }
+
+        try {
+            ScanArgs scanArgs = ScanArgs.Builder.matches(RESPONSE_STREAM_PREFIX + ".*").limit(500);
+            ScanCursor cursor = ScanCursor.INITIAL;
+            do {
+                KeyScanCursor<String> scanResult = commands.scan(cursor, scanArgs);
+                List<String> keys = scanResult.getKeys();
+                if (keys != null && !keys.isEmpty()) {
+                    commands.del(keys.toArray(new String[0]));
+                }
+                cursor = scanResult;
+            } while (!cursor.isFinished());
+        } catch (Exception e) {
+            logger.warn("Failed to purge response streams using prefix '{}.'", RESPONSE_STREAM_PREFIX, e);
+        }
+    }
+
+    private boolean isRedisOom(Throwable t) {
+        Throwable cur = t;
+        while (cur != null) {
+            if (cur instanceof RedisCommandExecutionException) {
+                String msg = cur.getMessage();
+                if (msg != null && msg.contains("OOM command not allowed")) {
+                    return true;
+                }
+            }
+            cur = cur.getCause();
+        }
+        return false;
+    }
+
+    private void purgeTransportKeysOnOom() {
+        long now = System.currentTimeMillis();
+        if (now - lastPurgeEpochMs < PURGE_COOLDOWN_MS) {
+            return;
+        }
+        synchronized (this) {
+            long again = System.currentTimeMillis();
+            if (again - lastPurgeEpochMs < PURGE_COOLDOWN_MS) {
+                return;
+            }
+            logger.warn("Redis reported OOM; purging message-exchange transport keys.");
+            purgeTransportKeysOnStartup();
+            lastPurgeEpochMs = again;
+        }
     }
 
     private void initializeCursor() {
@@ -204,6 +305,7 @@ public class ProxyMessageServer implements AutoCloseable {
         try {
             CompletableFuture<Map<String, ServerInfo>> listF = server.listServers();
             listF.thenAccept(map -> {
+                Map<String, String> response = new HashMap<>();
                 try {
                     JsonArray arr = new JsonArray();
                     map.forEach((name, info) -> {
@@ -214,7 +316,6 @@ public class ProxyMessageServer implements AutoCloseable {
                         arr.add(s);
                     });
 
-                    Map<String, String> response = new HashMap<>();
                     response.put("type", "server-list-response");
                     response.put("servers", gson.toJson(arr));
                     String responseStream = RESPONSE_STREAM_PREFIX + "." + requestId;
@@ -225,6 +326,22 @@ public class ProxyMessageServer implements AutoCloseable {
                     );
                     commands.expire(responseStream, RESPONSE_STREAM_TTL_SECONDS);
                 } catch (Exception e) {
+                    if (isRedisOom(e)) {
+                        purgeTransportKeysOnOom();
+                        try {
+                            String responseStream = RESPONSE_STREAM_PREFIX + "." + requestId;
+                            commands.xadd(
+                                responseStream,
+                                XAddArgs.Builder.maxlen(RESPONSE_STREAM_MAX_LEN).approximateTrimming(),
+                                response
+                            );
+                            commands.expire(responseStream, RESPONSE_STREAM_TTL_SECONDS);
+                            return;
+                        } catch (Exception retryError) {
+                            logger.error("Failed to send server-list response after OOM purge", retryError);
+                            return;
+                        }
+                    }
                     logger.error("Failed to send server-list response", e);
                 }
             });
