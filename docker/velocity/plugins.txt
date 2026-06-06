@@ -1,0 +1,5 @@
+https://hangarcdn.papermc.io/plugins/ViaVersion/ViaVersion/versions/5.9.2-SNAPSHOT%2B1002/PAPER/ViaVersion-5.9.2-SNAPSHOT.jar
+https://hangarcdn.papermc.io/plugins/ViaVersion/ViaBackwards/versions/5.9.2-SNAPSHOT%2B587/PAPER/ViaBackwards-5.9.2-SNAPSHOT.jar
+https://hangarcdn.papermc.io/plugins/ViaVersion/ViaRewind/versions/4.1.1/PAPER/ViaRewind-4.1.1.jar
+https://download.geysermc.org/v2/projects/geyser/versions/latest/builds/latest/downloads/velocity
+https://download.geysermc.org/v2/projects/floodgate/versions/latest/builds/latest/downloads/velocity

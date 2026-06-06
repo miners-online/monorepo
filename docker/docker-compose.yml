@@ -1,0 +1,57 @@
+services:
+  proxy:
+    image: itzg/mc-proxy:latest
+    restart: unless-stopped
+    environment:
+      TYPE: "VELOCITY"
+      ICON: "https://github.com/miners-online/.github/blob/main/profile/logos/favicon-64x64.png?raw=true"
+      PLUGINS_FILE: "/config/plugins.txt"
+    volumes:
+      - ./velocity:/config
+    ports:
+      - '25565:25565' # Java Edition
+      - '25565:25565/udp' # Java Edition query
+      - '19132:19132/tcp' # Geyser listener
+      - '19132:19132/udp' # Geyser listener
+    secrets:
+      - velocity_forwarding_secret
+    networks:
+      - minecraft
+
+  lobby:
+    image: itzg/minecraft-server:latest
+    restart: unless-stopped
+    environment:
+      EULA: "TRUE"
+      TYPE: "FABRIC"
+      VERSION: "26.1.2"
+      USE_MEOWICE_FLAGS: "true"
+      MAX_MEMORY: "2G"
+
+      REPLACE_ENV_IN_PLACE: "true"
+      REPLACE_ENV_VARIABLE_PREFIX: "CFG_"
+
+      CFG_PROXY_SECRET_FILE: "/run/secrets/velocity_forwarding_secret"
+
+      REMOVE_OLD_MODS: "true"
+      MODRINTH_PROJECTS: |
+        fabric-api:E1mjhYMF
+        fabricproxy-lite:CsEpiziv
+        ferrite-core:d5ddUdiB
+        lithium:GiCfpS6V
+        styled-chat:N8ASEpbM
+    depends_on:
+      - proxy
+    volumes:
+      - ./lobby-config:/config
+    secrets:
+      - velocity_forwarding_secret
+    networks:
+      - minecraft
+
+networks:
+  minecraft:
+
+secrets:
+  velocity_forwarding_secret:
+    file: ./velocity_forwarding_secret.txt
