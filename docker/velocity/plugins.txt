@@ -3,3 +3,4 @@ https://hangarcdn.papermc.io/plugins/ViaVersion/ViaBackwards/versions/5.9.2-SNAP
 https://hangarcdn.papermc.io/plugins/ViaVersion/ViaRewind/versions/4.1.1/PAPER/ViaRewind-4.1.1.jar
 https://download.geysermc.org/v2/projects/geyser/versions/latest/builds/latest/downloads/velocity
 https://download.geysermc.org/v2/projects/floodgate/versions/latest/builds/latest/downloads/velocity
+https://download.luckperms.net/1643/velocity/LuckPerms-Velocity-5.5.55.jar
