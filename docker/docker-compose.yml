@@ -81,6 +81,7 @@ services:
         lithium:GiCfpS6V
         styled-chat:N8ASEpbM
         luckperms:Nq5UZXxA
+        vanilla-permissions:bpq3ZDRl
     depends_on:
       - proxy
     volumes:

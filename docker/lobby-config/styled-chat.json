@@ -87,8 +87,20 @@
     {
       "require": {
         "type": "permission",
-        "permission": "group.admin",
-        "operator": 4
+        "permission": "group.lead_admin"
+      },
+      "display_name": "<dark_gray>[<red>Lead Admin</red>]</dark_gray> <c:#ffe8a3>${vanillaDisplayName}</c>",
+      "message_formats": {
+        "chat": "${player} <dark_gray>»</dark_gray> <orange>${message}",
+        "base_death": ""
+      },
+      "formatting": {},
+      "emoticons": {}
+    },
+    {
+      "require": {
+        "type": "permission",
+        "permission": "group.admin"
       },
       "display_name": "<dark_gray>[<red>Admin</red>]</dark_gray> <c:#ffe8a3>${vanillaDisplayName}</c>",
       "message_formats": {
@@ -101,24 +113,36 @@
     {
       "require": {
         "type": "permission",
-        "permission": "group.default"
+        "permission": "group.moderator"
       },
-      "display_name": "<dark_gray>[<aqua>Player</aqua>]</dark_gray> <dark_aqua>${vanillaDisplayName}</dark_aqua>",
-      "message_formats": {},
+      "display_name": "<dark_gray>[<red>Moderator</red>]</dark_gray> <c:#ffe8a3>${vanillaDisplayName}</c>",
+      "message_formats": {
+        "chat": "${player} <dark_gray>»</dark_gray> <orange>${message}",
+        "base_death": ""
+      },
       "formatting": {},
       "emoticons": {}
     },
     {
       "require": {
         "type": "permission",
-        "permission": "group.vip",
-        "operator": 3
+        "permission": "group.vip"
       },
       "message_formats": {},
       "formatting": {},
       "emoticons": {
         "potato": "<rb>Potato"
       }
+    },
+    {
+      "require": {
+        "type": "permission",
+        "permission": "group.default"
+      },
+      "display_name": "<dark_gray>[<aqua>Player</aqua>]</dark_gray> <dark_aqua>${vanillaDisplayName}</dark_aqua>",
+      "message_formats": {},
+      "formatting": {},
+      "emoticons": {}
     }
   ]
 }
