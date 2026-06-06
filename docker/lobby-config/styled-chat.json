@@ -87,7 +87,7 @@
     {
       "require": {
         "type": "permission",
-        "permission": "group.lead_admin"
+        "permission": "group:lead_admin"
       },
       "display_name": "<dark_gray>[<red>Lead Admin</red>]</dark_gray> <c:#ffe8a3>${vanillaDisplayName}</c>",
       "message_formats": {
@@ -100,7 +100,7 @@
     {
       "require": {
         "type": "permission",
-        "permission": "group.admin"
+        "permission": "group:admin"
       },
       "display_name": "<dark_gray>[<red>Admin</red>]</dark_gray> <c:#ffe8a3>${vanillaDisplayName}</c>",
       "message_formats": {
@@ -113,7 +113,7 @@
     {
       "require": {
         "type": "permission",
-        "permission": "group.moderator"
+        "permission": "group:moderator"
       },
       "display_name": "<dark_gray>[<red>Moderator</red>]</dark_gray> <c:#ffe8a3>${vanillaDisplayName}</c>",
       "message_formats": {
@@ -126,7 +126,7 @@
     {
       "require": {
         "type": "permission",
-        "permission": "group.vip"
+        "permission": "group:vip"
       },
       "message_formats": {},
       "formatting": {},
@@ -137,7 +137,7 @@
     {
       "require": {
         "type": "permission",
-        "permission": "group.default"
+        "permission": "group:default"
       },
       "display_name": "<dark_gray>[<aqua>Player</aqua>]</dark_gray> <dark_aqua>${vanillaDisplayName}</dark_aqua>",
       "message_formats": {},
