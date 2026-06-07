@@ -1,4 +1,0 @@
-*.pem
-*.env
-/secrets/*
-mariadb_config
