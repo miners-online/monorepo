@@ -80,6 +80,7 @@ services:
         ferrite-core:d5ddUdiB
         lithium:GiCfpS6V
         styled-chat:N8ASEpbM
+        styledplayerlist:bzbuSIb1
         luckperms:Nq5UZXxA
         vanilla-permissions:bpq3ZDRl
     depends_on:
